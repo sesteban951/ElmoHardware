@@ -1,0 +1,259 @@
+sergio@skynet:~/code/ElmoHardware/build$ sudo ./s
+SOEM (Simple Open EtherCAT Master)
+Setting Up ELMO drivers...
+Starting ELMO communication
+ec_init on enx00e04c68005e succeeded.
+6 slaves found and configured.
+Slave 1 has CA? true
+Slave 2 has CA? true
+Slave 3 has CA? true
+Slave 4 has CA? true
+Slave 5 has CA? true
+Slave 6 has CA? true
+Slave: 1 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 1 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 1 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 1 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 1 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 1 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 2 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 2 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 2 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 2 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 2 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 2 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 3 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 3 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 3 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 3 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 3 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 3 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 4 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 4 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 4 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 4 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 4 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 4 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 5 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 5 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 5 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 5 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 5 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 5 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 6 - Write at 0x6060:0 => wkc: 1; data: 0xa	{OpMode}
+Slave: 6 - Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
+Slave: 6 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 6 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 6 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 6 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 1 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 1 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 1 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 1 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 2 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 2 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 2 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 2 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 3 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 3 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 3 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 3 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 4 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 4 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 4 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 4 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 5 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 5 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 5 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 5 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+Slave: 6 - Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
+Slave: 6 - Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
+Slave: 6 - Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
+Slave: 6 - Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
+
+Slave:1
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 0[ns]
+ Has DC: 1
+
+Slave:2
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 560[ns]
+ Has DC: 1
+
+Slave:3
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 1120[ns]
+ Has DC: 1
+
+Slave:4
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 1700[ns]
+ Has DC: 1
+
+Slave:5
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 2260[ns]
+ Has DC: 1
+
+Slave:6
+ Name:? M:0000009a I:00030924
+ Output size: 32bits
+ Input size: 112bits
+ State: 2
+ Delay: 2840[ns]
+ Has DC: 1
+Slave: 1 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 1 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 1 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 1 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slave: 2 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 2 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 2 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 2 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slave: 3 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 3 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 3 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 3 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slave: 4 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 4 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 4 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 4 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slave: 5 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 5 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 5 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 5 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slave: 6 - Read at 0x10f1:2 => wkc: 1; data: 0x0001 (1)	[Heartbeat?]
+Slave: 6 - Write at 0x10f1:2 => wkc: 1; data: 0x0001	{Heartbeat}
+Slave: 6 - Write at 0x60c2:1 => wkc: 1; data: 0x2	{Time period}
+Slave: 6 - Write at 0x2f75:0 => wkc: 1; data: 0x02	{Interpolation timeout}
+Slaves mapped, state to SAFE_OP.
+segments : 1 : 108 0 0 0
+Request operational state for all slaves
+Calculated workcounter 18
+Slave: 1 - Read at 0x6083:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile acceleration]
+Slave: 1 - Read at 0x6084:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile deceleration]
+Slave: 1 - Read at 0x6085:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Quick stop deceleration]
+Slave: 2 - Read at 0x6083:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile acceleration]
+Slave: 2 - Read at 0x6084:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile deceleration]
+Slave: 2 - Read at 0x6085:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Quick stop deceleration]
+Slave: 3 - Read at 0x6083:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile acceleration]
+Slave: 3 - Read at 0x6084:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile deceleration]
+Slave: 3 - Read at 0x6085:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Quick stop deceleration]
+Slave: 4 - Read at 0x6083:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile acceleration]
+Slave: 4 - Read at 0x6084:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile deceleration]
+Slave: 4 - Read at 0x6085:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Quick stop deceleration]
+Slave: 5 - Read at 0x6083:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile acceleration]
+Slave: 5 - Read at 0x6084:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Profile deceleration]
+Slave: 5 - Read at 0x6085:0 => wkc: 1; data: 0x7fffffff (2147483647)	[Quick stop deceleration]
+Slave: 6 - Read at 0x6083:0 => wkc: 1; data: 0x0001 (1)	[Profile acceleration]
+Slave: 6 - Read at 0x6084:0 => wkc: 1; data: 0x0001 (1)	[Profile deceleration]
+Slave: 6 - Read at 0x6085:0 => wkc: 1; data: 0x0001 (1)	[Quick stop deceleration]
+Operational state reached for all slaves.
+......Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+......Slave: 1 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+.....................................................................................................................................................................................Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 1 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+.....................................................................................................................................................................................Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+.......Slave: 1 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+.....................................................................................................................................................................................Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 1 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+.....................................................................................................................................................................................Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 1 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+......................................................................................................................................................................................Slave: 1 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+EC> "Time:1715289807.506 EMERGENCY slave:1 error:ff10
+" 8 - 0 [No error] 
+....Slave: 1 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+.....Slave: 1 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+......Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+......Slave: 2 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+......................................................................................................................................................................................Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 2 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+.....................................................................................................................................................................................Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 2 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+....................................................................................................................................................................................Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 2 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+.....................................................................................................................................................................................Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 2 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+.....................................................................................................................................................................................Slave: 2 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.EC> "Time:1715289808.045 EMERGENCY slave:2 error:ff10
+" 8 - 0 [No error] 
+...Slave: 2 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+......Slave: 2 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+......Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.......Slave: 3 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+......................................................................................................................................................................................Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 3 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+......................................................................................................................................................................................Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 3 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+.....................................................................................................................................................................................Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 3 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+......................................................................................................................................................................................Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 3 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+........................................................................................................................................................................................Slave: 3 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.EC> "Time:1715289808.585 EMERGENCY slave:3 error:ff10
+" 8 - 0 [No error] 
+...Slave: 3 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+......Slave: 3 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+......Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+......Slave: 4 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+........................................................................................................................................................................................Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 4 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+....................................................................................................................................................................................Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+.......Slave: 4 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+.......................................................................................................................................................................................Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 4 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+........................................................................................................................................................................................Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 4 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+.......................................................................................................................................................................................Slave: 4 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.EC> "Time:1715289809.126 EMERGENCY slave:4 error:ff10
+" 8 - 0 [No error] 
+...Slave: 4 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+......Slave: 4 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+......Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+......Slave: 5 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+........................................................................................................................................................................................Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 5 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+....................................................................................................................................................................................Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 5 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+.....................................................................................................................................................................................Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 5 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+.....................................................................................................................................................................................Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 5 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+.......................................................................................................................................................................................Slave: 5 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.EC> "Time:1715289809.667 EMERGENCY slave:5 error:ff10
+" 8 - 0 [No error] 
+...Slave: 5 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+......Slave: 5 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+......Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+......Slave: 6 - Write at 0x6040:0 => wkc: 1; data: 0x80	{*control word*}
+.....................................................................................................................................................................................Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 6 - Write at 0x6040:0 => wkc: 1; data: 0x00	{*control word*}
+......................................................................................................................................................................................Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x250 (592)	[*status word*]
+......Slave: 6 - Write at 0x6040:0 => wkc: 1; data: 0x06	{*control word*}
+.....................................................................................................................................................................................Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x231 (561)	[*status word*]
+......Slave: 6 - Write at 0x6040:0 => wkc: 1; data: 0x07	{*control word*}
+.....................................................................................................................................................................................Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x233 (563)	[*status word*]
+......Slave: 6 - Write at 0x6040:0 => wkc: 1; data: 0x0f	{*control word*}
+......................................................................................................................................................................................Slave: 6 - Read at 0x6041:0 => wkc: 1; data: 0x218 (536)	[*status word*]
+.EC> "Time:1715289810.207 EMERGENCY slave:6 error:ff10
+" 8 - 0 [No error] 
+...Slave: 6 - Read at 0x1a0b:0 => wkc: 1; data: 0x2 (2)	[OpMode Display]
+......Slave: 6 - Read at 0x1001:0 => wkc: 1; data: 0x81 (129)	[Error]
+Ready
+Everything looks good.

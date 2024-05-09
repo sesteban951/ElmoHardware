@@ -35,18 +35,19 @@ struct ELMOData{
   uint16 status[4]; // status of each motor
 };
 
-// struct to hold out-going data
+// struct to hold out-going data, Laptop --> ELMO
 struct ELMOOut {
     int16 torque;       // torque command
     uint16 controlword; // control word
 };
 
-// struct to hold in-coming data
+// struct to hold in-coming data, Laptop <-- ELMO
+// 0x1A03
 struct ELMOIn {
-    int32 position;
-    uint32 inputs;
-    int32 velocity;
-    uint16 status;
+    int32 position;  // joint position
+    uint32 inputs;   // encoder inputs
+    int32 velocity;  // joint velocity
+    uint16 status;   // status of motor
 };
 
 // struct for program state

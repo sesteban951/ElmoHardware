@@ -22,7 +22,9 @@ uint8 currentgroup = 0;
 char usdo[128];
 char hstr[1024];
 
+
 // **************************************************************************************************************************//
+
 
 // Service Data Object (SDO) READ macro. 
 #define READ(slaveId, idx, sub, buf, comment)    \
@@ -52,6 +54,7 @@ char hstr[1024];
 
 // **************************************************************************************************************************//
 
+
 // ELMO communication function. Setup and stream data
 void *ELMOcommunication(void *data) {
     
@@ -67,8 +70,8 @@ void *ELMOcommunication(void *data) {
     data_pointer = *(ELMOData **) data;
     char ifname[1028];
     strcpy(ifname,data_pointer->port);
-    struct ELMOIn *val[6];
-    struct ELMOOut *target[6];
+    struct ELMOIn *val[6];     // Laptop <-- ELMO
+    struct ELMOOut *target[6]; // Laptop --> ELMO
     
     printf("Starting ELMO communication\n");
 
@@ -94,14 +97,20 @@ void *ELMOcommunication(void *data) {
 
             /** opMode: 8  => Position profile */
             for (int i=1; i<=ec_slavecount; i++) {
+
+                // Write at 0x6060:0 => wkc: 1; data: 0xa 	{OpMode}
                 WRITE(i, 0x6060, 0, buf8, 10, "OpMode");
+                // Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
                 READ(i, 0x6061, 0, buf8, "OpMode display");
 
-
+                // Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
                 READ(i, 0x1c12, 0, buf32, "rxPDO:0");
+                // Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)
                 READ(i, 0x1c13, 0, buf32, "txPDO:0");
 
+                // Read at 0x1c12:1 => wkc: 1; data: 0x1 (1)	[rxPDO:1]                   
                 READ(i, 0x1c12, 1, buf32, "rxPDO:1");
+                // Read at 0x1c13:1 => wkc: 1; data: 0x1a00 (6656)	[txPDO:1]
                 READ(i, 0x1c13, 1, buf32, "txPDO:1");
             }
 
@@ -113,18 +122,31 @@ void *ELMOcommunication(void *data) {
                 os=sizeof(ob2); ob2 = 0x1a030001;
                 ec_SDOwrite(i, 0x1c13, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
 
+                // Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
                 READ(i, 0x1c12, 0, buf32, "rxPDO:0");
+                // Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
                 READ(i, 0x1c13, 0, buf32, "txPDO:0");
 
+                // Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
                 READ(i, 0x1c12, 1, buf32, "rxPDO:1");
+                // Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
                 READ(i, 0x1c13, 1, buf32, "txPDO:1");
             }
             
             /** if CA disable => automapping works */
-            ec_config_map(&IOmap);
-            ec_configdc();
+            ec_config_map(&IOmap); 
+            ec_configdc(); // what is this for? (Noel)
 
             // show slave info
+            /* prints out the mapping for each slave:
+                Slave: X
+                Name: Y  M: I:
+                Output size: Z bits
+                Input size: W bits
+                State: S
+                Delay: D[ns]
+                Has DC: Bool
+            */
             for (int i=1; i<=ec_slavecount; i++) {
                 printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
                 i, ec_slave[i].name, ec_slave[i].Obits, ec_slave[i].Ibits,
@@ -284,8 +306,10 @@ void *ELMOcommunication(void *data) {
                               }
                           }
 
+                          // Here is where you set the target torques
                           if((val[j+1]->status & 0x0fff) == 0x0237 && reachedInitial[j+1]){
-                            target[j+1]->torque = (int16) data_pointer->torque[j];
+                            // target[j+1]->torque = (int16) data_pointer->torque[j];
+                            target[j+1]->torque = 0;
                           }
                         }
                         // printf("  Time: %" PRId64 "\n",ec_DCtime);

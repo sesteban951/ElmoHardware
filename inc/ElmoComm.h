@@ -22,23 +22,23 @@
 #include <ethercatconfig.h>
 #include <ethercatprint.h>
 
-// General ELMO header
-struct Data{
+// struct for general ELMO data
+struct ELMOData{
   char port[1028];
   int commStatus;
-  int16 torque[4];
-  int32 torso;
-  int32 torso_d;
-  int32 pos[4];
-  int32 vel[4];
-  uint32 inputs[4];
-  uint16 status[4];
+  int16 torque[4];  // number of torque commands
+  int32 torso;      // current torso position
+  int32 torso_d;    // desired torso position
+  int32 pos[4];     // encoder joint position
+  int32 vel[4];     // encoder joint velocity
+  uint32 inputs[4]; // encoder inputs
+  uint16 status[4]; // status of each motor
 };
 
 // struct to hold out-going data
 struct ELMOOut {
-    int16 torque;
-    uint16 controlword;
+    int16 torque;       // torque command
+    uint16 controlword; // control word
 };
 
 // struct to hold in-coming data
@@ -49,8 +49,12 @@ struct ELMOIn {
     uint16 status;
 };
 
-// function to initialize ELMO
-void initELMO(char* port);
+// struct for program state
+enum programState {
+    Running,
+    Exit, 
+    Initializing
+};
 
 // ELMO communication function
 void *ELMOcommunication(void *data);

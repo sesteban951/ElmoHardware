@@ -68,9 +68,9 @@ void *ELMOcommunication(void *data) {
 
     // Funky pointer stuff to cast void* data correctly
     data_pointer = *(ELMOData **) data;
-    char ifname[1028];
+    char ifname[1028]; // ethernet port name container
     strcpy(ifname,data_pointer->port);
-    struct ELMOIn *val[6];     // Laptop <-- ELMO
+    struct ELMOIn *val[6];     // ELMO --> Laptop
     struct ELMOOut *target[6]; // Laptop --> ELMO
     
     printf("Starting ELMO communication\n");
@@ -78,7 +78,9 @@ void *ELMOcommunication(void *data) {
     /* initialise SOEM, bind socket to ifname */
     if (ec_init(ifname))
     {
+        // if we was able to bind the socket print success message
         printf("ec_init on %s succeeded.\n",ifname);
+
         /* find and auto-config slaves */
 
         /** network discovery */
@@ -233,11 +235,15 @@ void *ELMOcommunication(void *data) {
                 }
                 int reachedInitial[] = {0,0,0,0,0,0};        
 
-                /* cyclic loop for two slaves*/
+                // assign the ElmoIn and ElmoOut structs to each ELMO motor controller
+                /* cyclic loop for all slaves*/
                 for (int j = 0; j <ec_slavecount; j++) {
                   target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs);
                   val[j] = (struct ELMOIn *)(ec_slave[j+1].inputs);
                 }
+
+                //----------------------------------------- Main Loop ------------------------------------------//
+
                 // Ready
                 data_pointer->commStatus = 1;
                 while(1)
@@ -273,49 +279,55 @@ void *ELMOcommunication(void *data) {
                           }
                         }
 
-                        data_pointer->torso = val[5]->position;
-                        data_pointer->torso_d = val[5]->velocity;
+                        // data_pointer->torso = val[5]->position;
+                        // data_pointer->torso_d = val[5]->velocity;
 
-                        for (int j = 0; j < 4; j++) {
-                          data_pointer->pos[j] = val[j+1]->position;  
-                          data_pointer->vel[j] = val[j+1]->velocity;
+                        for (int j = 0; j < 6; j++) {
+                          data_pointer->pos[j] = val[j]->position;  
+                          data_pointer->vel[j] = val[j]->velocity;
 
-                          switch (j) {
-                            case 0:
-                              if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
-                                data_pointer->torque[j]=0;
-                                std::cout << "Warning: Knee joint limit reached" << std::endl;
-                              }
-                            break;
-                            case 3:
-                              if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
-                                data_pointer->torque[j]=0;
-                                std::cout << "Warning: Knee joint limit reached" << std::endl;
-                              }
-                            break;
-                            case 1:
-                              if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
-                                data_pointer->torque[j]=0;
-                                std::cout << "Warning: Hip joint limit reached" << std::endl;
-                              }
-                            break;
-                            case 2:
-                              if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
-                                data_pointer->torque[j]=0;
-                                std::cout << "Warning: Hip joint limit reached" << std::endl;
-                              }
-                          }
+                        //   switch (j) {
+                        //     case 0:
+                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
+                        //         data_pointer->torque[j]=0;
+                        //         std::cout << "Warning: Knee joint limit reached" << std::endl;
+                        //       }
+                        //     break;
+                        //     case 3:
+                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
+                        //         data_pointer->torque[j]=0;
+                        //         std::cout << "Warning: Knee joint limit reached" << std::endl;
+                        //       }
+                        //     break;
+                        //     case 1:
+                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
+                        //         data_pointer->torque[j]=0;
+                        //         std::cout << "Warning: Hip joint limit reached" << std::endl;
+                        //       }
+                        //     break;
+                        //     case 2:
+                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
+                        //         data_pointer->torque[j]=0;
+                        //         std::cout << "Warning: Hip joint limit reached" << std::endl;
+                        //       }
+                        //   }
 
                           // Here is where you set the target torques
-                          if((val[j+1]->status & 0x0fff) == 0x0237 && reachedInitial[j+1]){
+                        //   if((val[j+1]->status & 0x0fff) == 0x0237 && reachedInitial[j+1]){
                             // target[j+1]->torque = (int16) data_pointer->torque[j];
-                            target[j+1]->torque = 0;
-                          }
+                            target[j]->torque = 0;
+                        //   }
                         }
+
+                        for (int i=1; i<=ec_slavecount; i++) {
+                            READ(i, 0x6071, 0, buf16, "TORQUE");
+                        }
+
                         // printf("  Time: %" PRId64 "\n",ec_DCtime);
                         // printf("\r");
                         needlf = TRUE;
                     }
+                    
                     usleep(1000);
                     // usleep(750);
                 }
@@ -349,6 +361,7 @@ void *ELMOcommunication(void *data) {
             printf("No slaves found!\n");
         }
         printf("End simple test, close socket\n");
+        
         /* stop SOEM, close socket */
         ec_close();
         data_pointer->commStatus = -1;
@@ -359,7 +372,9 @@ void *ELMOcommunication(void *data) {
     }
 }
 
+
 // **************************************************************************************************************************//
+
 
 // callback function to check for ethercat comm errors
 void *ecatcheck(void* why) {

@@ -1,4 +1,8 @@
 
+// standard imports
+#include <thread>
+#include <chrono>
+
 // Other imports 
 #include <yaml-cpp/yaml.h>
 #include <Eigen/Dense>
@@ -28,12 +32,21 @@ int main() {
     //***************************************************************
     // DO STUFF
 
-    // initialize ELMO
+    // initialize ELMO interface
     ELMOInterface elmo;
 
-    // create two threads, one for ecat checking, and the other for ELMO communication
+    // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
     elmo.initELMO(port, thread1, thread2);
+
+    // get encoder data
+    // for (int i = 0; i < 100; ++i) { // Loop 50 times
+    for (;;) { // Loop 50 times
+        Eigen::VectorXd data = elmo.getElmoData();
+        std::cout << "\n-----------------------------------------\n" << std::endl;
+        std::cout << "Data: " << data << std::endl;
+        // std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Sleep for 250 milliseconds
+    }
 
     //***************************************************************
 

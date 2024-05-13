@@ -1,13 +1,22 @@
-#ifndef ESTIMATOR_H
-#define ESTIMATOR_H
+#ifndef ELMOINTERFACE_H
+#define ELMOINTERFACE_H
 
-#include <Eigen/Dense>
+// we will also use the ELMO communication header
 #include "ElmoComm.h"
+
+// standard headers
+#include <Eigen/Dense>
+
 
 #define actuator_conversion_factor 2*M_PI/8192.0/91.4285714286 // 2*PI*ticks/res_of_encoder/GEAR_RATIO
 #define gear_ratio 91.4285714286
 #define torso_conversion_factor 2*M_PI/8192.0/3 // 2*PI*ticks/res_of_encoder/GEAR_RATIO
 
+struct robot_data {
+
+};
+
+//  A class that enables communication between the computer and motor controllers
 class ELMOInterface {
     
     public:
@@ -15,8 +24,15 @@ class ELMOInterface {
         // struct to hold ELMO data
         struct ELMOData *data;
 
+        // use default constructor / desctructors
+        ELMOInterface() {};
+        ~ELMOInterface() {};
+
         // function to initialize ELMO
         void initELMO(char* port, pthread_t thread1, pthread_t thread2);
+
+        // function to get encoder data
+        Eigen::VectorXd getElmoData();
 
 };
 

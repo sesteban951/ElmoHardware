@@ -26,13 +26,13 @@
 struct ELMOData{
   char port[1028];
   int commStatus;
-  int16 torque[4];  // number of torque commands
+  int16 torque[6];  // number of torque commands
   int32 torso;      // current torso position
   int32 torso_d;    // desired torso position
-  int32 pos[4];     // encoder joint position
-  int32 vel[4];     // encoder joint velocity
-  uint32 inputs[4]; // encoder inputs
-  uint16 status[4]; // status of each motor
+  int32 pos[6];     // encoder joint position
+  int32 vel[6];     // encoder joint velocity
+  uint32 inputs[6]; // encoder inputs
+  uint16 status[6]; // status of each motor
 };
 
 // struct to hold out-going data, Laptop --> ELMO
@@ -41,7 +41,7 @@ struct ELMOOut {
     uint16 controlword; // control word
 };
 
-// struct to hold in-coming data, Laptop <-- ELMO
+// struct to hold in-coming data, ELMO --> Laptop
 // 0x1A03
 struct ELMOIn {
     int32 position;  // joint position
@@ -51,11 +51,9 @@ struct ELMOIn {
 };
 
 // struct for program state
-enum programState {
-    Running,
-    Exit, 
-    Initializing
-};
+enum programState {Initializing, 
+                   Running, 
+                   Exit};
 
 // ELMO communication function
 void *ELMOcommunication(void *data);

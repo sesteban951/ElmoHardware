@@ -22,6 +22,15 @@
 #include <ethercatconfig.h>
 #include <ethercatprint.h>
 
+/* ELMO order of joints (raw order)
+  1. HFL  (Hip Frontal Left)
+  2. HSL  (Hip Sagittal Left)
+  3. HSR  (Hip Sagittal Right)
+  4. KL   (Knee Left)
+  5. HFR  (Hip Frontal Right)
+  6. KR   (Knee Right)
+*/ 
+
 // struct for general ELMO data
 struct ELMOData{
   char port[1028];

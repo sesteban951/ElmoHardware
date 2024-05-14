@@ -42,7 +42,8 @@ int main() {
     // get encoder data
     // for (int i = 0; i < 100; ++i) { // Loop 50 times
     for (;;) { // Loop 50 times
-        Eigen::VectorXd data = elmo.getElmoData();
+
+        Eigen::VectorXd data = elmo.getEncoderData();
         std::cout << "\n-----------------------------------------\n" << std::endl;
         std::cout << "Data: " << data << std::endl;
         // std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Sleep for 250 milliseconds

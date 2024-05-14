@@ -1,14 +1,6 @@
 
 #include "../inc/ElmoComm.h"
 
-#define actuator_conversion_factor 0.0001
-
-#define KNEEMIN -0.01
-#define KNEEMAX  0.01
-
-#define HIPMIN -0.01
-#define HIPMAX  0.01
-
 #define EC_TIMEOUTMON 500
 
 programState progState;
@@ -286,32 +278,6 @@ void *ELMOcommunication(void *data) {
                           data_pointer->pos[j] = val[j]->position;  
                           data_pointer->vel[j] = val[j]->velocity;
 
-                        //   switch (j) {
-                        //     case 0:
-                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
-                        //         data_pointer->torque[j]=0;
-                        //         std::cout << "Warning: Knee joint limit reached" << std::endl;
-                        //       }
-                        //     break;
-                        //     case 3:
-                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > KNEEMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < KNEEMIN && data_pointer->torque[j] < 0)) {
-                        //         data_pointer->torque[j]=0;
-                        //         std::cout << "Warning: Knee joint limit reached" << std::endl;
-                        //       }
-                        //     break;
-                        //     case 1:
-                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
-                        //         data_pointer->torque[j]=0;
-                        //         std::cout << "Warning: Hip joint limit reached" << std::endl;
-                        //       }
-                        //     break;
-                        //     case 2:
-                        //       if ((data_pointer->pos[j]*actuator_conversion_factor > HIPMAX && data_pointer->torque[j] > 0) | (data_pointer->pos[j]*actuator_conversion_factor < HIPMIN && data_pointer->torque[j] < 0)) {
-                        //         data_pointer->torque[j]=0;
-                        //         std::cout << "Warning: Hip joint limit reached" << std::endl;
-                        //       }
-                        //   }
-
                           // Here is where you set the target torques
                         //   if((val[j+1]->status & 0x0fff) == 0x0237 && reachedInitial[j+1]){
                             // target[j+1]->torque = (int16) data_pointer->torque[j];
@@ -319,6 +285,7 @@ void *ELMOcommunication(void *data) {
                         //   }
                         }
 
+                        // print the torque values
                         for (int i=1; i<=ec_slavecount; i++) {
                             READ(i, 0x6071, 0, buf16, "TORQUE");
                         }
@@ -328,8 +295,8 @@ void *ELMOcommunication(void *data) {
                         needlf = TRUE;
                     }
                     
-                    usleep(1000);
-                    // usleep(750);
+                    usleep(2000000);
+                    usleep(500);
                 }
                 inOP = FALSE;
             }

@@ -5,15 +5,10 @@ ethernet: "enx00e04c68005e"
 
 ############################################################################
 
-# joint limits for the robot (DO NOT TOUCH)
-HIP_FRONTAL_MIN: -0.1
-HIP_FRONTAL_MAX:  0.1
-
-KNEE_SAGITTAL_MIN: -0.1
-KNEE_SAGITTAL_MAX:  0.1
-
-HIP_SAGITTAL_MIN: -0.1
-HIP_SAGITTAL_MAX:  0.1
+# Low Level Joint controller gains
+Kp: 0.1          # Proportional gain
+Kd: 0.01         # Derivative gain
+ff_scalar: 0.0   # Feedforward scalar multiplier (positive number)
 
 ############################################################################
 

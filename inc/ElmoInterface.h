@@ -7,14 +7,23 @@
 // standard headers
 #include <Eigen/Dense>
 
+/* ELMO order of joints (raw order)
+  1. HFL  (Hip Frontal Left)
+  2. HSL  (Hip Sagittal Left)
+  3. HSR  (Hip Sagittal Right)
+  4. KL   (Knee Left)
+  5. HFR  (Hip Frontal Right)
+  6. KR   (Knee Right)
+*/ 
 
-#define actuator_conversion_factor 2*M_PI/8192.0/91.4285714286 // 2*PI*ticks/res_of_encoder/GEAR_RATIO
-#define gear_ratio 91.4285714286
-#define torso_conversion_factor 2*M_PI/8192.0/3 // 2*PI*ticks/res_of_encoder/GEAR_RATIO
+// converison factors for reading the encoder data
+#define CPR 8192.0    // counts per revolution of the encoder (RLS RMB20)
+#define HIP_GR 30.0   // gear ratio for the hip actuators
+#define KNEE_GR 50.0  // gear ratio for the knee actuators
 
-struct robot_data {
-
-};
+// actuator conversion factors
+#define HIP_CONVERSION 2*M_PI/CPR/HIP_GR
+#define KNEE_CONVERSION 2*M_PI/CPR/KNEE_GR
 
 //  A class that enables communication between the computer and motor controllers
 class ELMOInterface {
@@ -32,7 +41,7 @@ class ELMOInterface {
         void initELMO(char* port, pthread_t thread1, pthread_t thread2);
 
         // function to get encoder data
-        Eigen::VectorXd getElmoData();
+        Eigen::VectorXd getEncoderData();
 
 };
 

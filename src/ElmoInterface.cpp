@@ -1,6 +1,5 @@
 #include "../inc/ElmoInterface.h"
 
-
 // function to intialize the ELMO motor controllers
 void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
 
@@ -42,20 +41,32 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     printf("Ready.\n");
 }
 
-// function to get teh raw encoder data
-Eigen::VectorXd ELMOInterface::getElmoData() {
+// function to get the raw encoder data
+Eigen::VectorXd ELMOInterface::getEncoderData() {
     
     // declare variables for the incoming data
     int32 pos[6];
     int32 vel[6];
+    Eigen::VectorXd data(12);
 
     // copy the incoming data to the declared variables
     memcpy(pos, this->data->pos, sizeof(pos));
     memcpy(vel, this->data->vel, sizeof(vel));
-
-    Eigen::VectorXd data(12);
-    data.setZero();
-    data << pos[0], pos[1], pos[2], pos[3], pos[4], pos[5], vel[0], vel[1], vel[2], vel[3], vel[4], vel[5];
     
+    // poulate the Eigen vector with reordered data
+    data.setZero();
+    data << pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+            pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+            pos[3] * KNEE_CONVERSION, // (KL) Knee Left
+            pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+            pos[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+            pos[5] * KNEE_CONVERSION, // (KR) Knee Right
+            vel[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+            vel[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+            vel[3] * KNEE_CONVERSION, // (KL) Knee Left
+            vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+            vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+            vel[5] * KNEE_CONVERSION; // (KR) Knee Right
+
     return data;
 }

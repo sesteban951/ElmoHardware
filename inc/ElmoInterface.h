@@ -7,7 +7,7 @@
 // standard headers
 #include <Eigen/Dense>
 
-/* ELMO order of joints (raw order)
+/* ELMO order of joints (physical default order)
   1. HFL  (Hip Frontal Left)
   2. HSL  (Hip Sagittal Left)
   3. HSR  (Hip Sagittal Right)
@@ -25,13 +25,37 @@
 #define HIP_CONVERSION 2*M_PI/CPR/HIP_GR
 #define KNEE_CONVERSION 2*M_PI/CPR/KNEE_GR
 
+struct JointGains {
+
+    // proportional gains
+    double Kp_HFL;
+    double Kp_HSL;
+    double Kp_KL;
+    double Kp_HFR;
+    double Kp_HSR;
+    double Kp_KR;
+
+    // derivative gains
+    double Kd_HFL;
+    double Kd_HSL;
+    double Kd_KL;
+    double Kd_HFR;
+    double Kd_HSR;
+    double Kd_KR;
+
+    // feedforward torque scaling
+    double Kff_HFL;
+    double Kff_HSL;
+    double Kff_KL;
+    double Kff_HFR;
+    double Kff_HSR;
+    double Kff_KR;
+};
+
 //  A class that enables communication between the computer and motor controllers
 class ELMOInterface {
     
     public:
-
-        // struct to hold ELMO data
-        struct ELMOData *data;
 
         // use default constructor / desctructors
         ELMOInterface() {};
@@ -40,9 +64,24 @@ class ELMOInterface {
         // function to initialize ELMO
         void initELMO(char* port, pthread_t thread1, pthread_t thread2);
 
+        // function to set the low levcel control gains
+        void setGains(JointGains gains);
+
         // function to get encoder data
         Eigen::VectorXd getEncoderData();
 
+        // functions to compute and send target torque to the ELMO
+        Eigen::VectorXd computeTorque(Eigen::VectorXd joint_ref, 
+                                      Eigen::VectorXd tau_ff);
+        void sendTorque(Eigen::VectorXd torque);
+
+    private:
+
+        // struct to hold ELMO data
+        struct ELMOData *data;
+
+        // struct to hold the joint gains
+        JointGains gains;
 };
 
 #endif

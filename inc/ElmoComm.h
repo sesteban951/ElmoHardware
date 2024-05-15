@@ -22,7 +22,7 @@
 #include <ethercatconfig.h>
 #include <ethercatprint.h>
 
-/* ELMO order of joints (raw order)
+/* ELMO order of joints (physical default order)
   1. HFL  (Hip Frontal Left)
   2. HSL  (Hip Sagittal Left)
   3. HSR  (Hip Sagittal Right)
@@ -35,11 +35,9 @@
 struct ELMOData{
   char port[1028];
   int commStatus;
-  int16 torque[6];  // number of torque commands
-  int32 torso;      // current torso position
-  int32 torso_d;    // desired torso position
-  int32 pos[6];     // encoder joint position
-  int32 vel[6];     // encoder joint velocity
+  int16 torque[6];  // desried torque commands
+  int32 pos[6];     // encoder joint position from ELMO
+  int32 vel[6];     // encoder joint velocity from ELMO
   uint32 inputs[6]; // encoder inputs
   uint16 status[6]; // status of each motor
 };
@@ -51,12 +49,12 @@ struct ELMOOut {
 };
 
 // struct to hold in-coming data, ELMO --> Laptop
-// 0x1A03
+// PDO Index: 0x1A03
 struct ELMOIn {
-    int32 position;  // joint position
-    uint32 inputs;   // encoder inputs
-    int32 velocity;  // joint velocity
-    uint16 status;   // status of motor
+    int32 position;  // "Position Actual Value"
+    uint32 inputs;   // "Digital Inputs"
+    int32 velocity;  // "Velocity Actual Value"
+    uint16 status;   // "Status Word"
 };
 
 // struct for program state

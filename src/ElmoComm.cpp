@@ -25,7 +25,7 @@ char hstr[1024];
         int __s = sizeof(buf);    \
         int __ret = ec_SDOread(slaveId, idx, sub, FALSE, &__s, &buf, EC_TIMEOUTRXM);   \
         printf("Slave: %d - Read at 0x%04x:%d => wkc: %d; data: 0x%.*x (%d)\t[%s]\n", slaveId, idx, sub, __ret, __s,(unsigned int)buf, (unsigned int)buf, comment);    \
-     }
+    }
 
 // Service Data Object (SDO) WRITE macro
 #define WRITE(slaveId, idx, sub, buf, value, comment) \
@@ -59,11 +59,13 @@ void *ELMOcommunication(void *data) {
     ELMOData * data_pointer;
 
     // Funky pointer stuff to cast void* data correctly
-    data_pointer = *(ELMOData **) data;
-    char ifname[1028]; // ethernet port name container
-    strcpy(ifname,data_pointer->port);
-    struct ELMOIn *val[6];     // ELMO --> Laptop
-    struct ELMOOut *target[6]; // Laptop --> ELMO
+    data_pointer = *(ELMOData **) data; // cast the void pointer to a ELMOData pointer
+    char ifname[1028];                  // ethernet port name container
+    strcpy(ifname,data_pointer->port);  // copy the port name to the container
+
+    // ELMO structs
+    struct ELMOIn *val[6];              // ELMO --> Laptop
+    struct ELMOOut *target[6];          // Laptop --> ELMO
     
     printf("Starting ELMO communication\n");
 
@@ -111,7 +113,7 @@ void *ELMOcommunication(void *data) {
             /** set PDO mapping */
             int32 ob2;int os;
             for (int i=1; i<=ec_slavecount; i++) {                
-                os=sizeof(ob2); ob2 = 0x16020001;
+                os=sizeof(ob2); ob2 = 0x16020001;                           //  set to 'Target Torque' (0x6071:0)
                 ec_SDOwrite(i, 0x1c12, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
                 os=sizeof(ob2); ob2 = 0x1a030001;
                 ec_SDOwrite(i, 0x1c13, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
@@ -228,10 +230,12 @@ void *ELMOcommunication(void *data) {
                 int reachedInitial[] = {0,0,0,0,0,0};        
 
                 // assign the ElmoIn and ElmoOut structs to each ELMO motor controller
-                /* cyclic loop for all slaves*/
+                /* cyclic loop for all slaves, "j+1" b/c slaves are 1-indexed*/
                 for (int j = 0; j <ec_slavecount; j++) {
-                  target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs);
-                  val[j] = (struct ELMOIn *)(ec_slave[j+1].inputs);
+
+                  target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs); // data struct to send to ELMO
+                  
+                  val[j] = (struct ELMOIn *)(ec_slave[j+1].inputs);      // data struct to receive from ELMO
                 }
 
                 //----------------------------------------- Main Loop ------------------------------------------//
@@ -245,8 +249,9 @@ void *ELMOcommunication(void *data) {
                     wkc = ec_receive_processdata(EC_TIMEOUTRET);
 
                     if(wkc >= expectedWKC) {
+
+                        /** if in fault or in the way to normal status, we update the state machine */
                         for (int j =0; j < ec_slavecount; j++) {
-                          /** if in fault or in the way to normal status, we update the state machine */
                           switch(target[j]->controlword){
                             case 0:
                                 target[j]->controlword = 6; // Enable voltage, quick stop
@@ -271,32 +276,33 @@ void *ELMOcommunication(void *data) {
                           }
                         }
 
-                        // data_pointer->torso = val[5]->position;
-                        // data_pointer->torso_d = val[5]->velocity;
-
+                        // update the data pointer with newest ELMO encoder data
+                        // set the target torques
                         for (int j = 0; j < 6; j++) {
                           data_pointer->pos[j] = val[j]->position;  
                           data_pointer->vel[j] = val[j]->velocity;
+                        
+                          if((val[j]->status & 0x0fff) == 0x0237 && reachedInitial[j]){
 
-                          // Here is where you set the target torques
-                        //   if((val[j+1]->status & 0x0fff) == 0x0237 && reachedInitial[j+1]){
-                            // target[j+1]->torque = (int16) data_pointer->torque[j];
-                            target[j]->torque = 0;
-                        //   }
+                            // set all the desired torques
+                            target[j]->torque = (int16) data_pointer->torque[j];
+                            // target[j]->torque = (int16) 0; // DEBUGGING
+                          }
                         }
 
                         // print the torque values
-                        for (int i=1; i<=ec_slavecount; i++) {
-                            READ(i, 0x6071, 0, buf16, "TORQUE");
-                        }
+                        // for (int i=1; i<=ec_slavecount; i++) {
+                            // READ(i, 0x6071, 0, buf16, "TORQUE");
+                            // READ(i, 0x6072, 0, buf16, "TORQUE_MAX");
+                        // }
 
                         // printf("  Time: %" PRId64 "\n",ec_DCtime);
                         // printf("\r");
                         needlf = TRUE;
                     }
                     
-                    usleep(2000000);
-                    usleep(500);
+                    usleep(1000);
+                    // usleep(500);
                 }
                 inOP = FALSE;
             }

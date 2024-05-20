@@ -10,14 +10,14 @@ gains:
 
   Kp_HFL: 0.0   # Hip Frontal Left (HFL)
   Kp_HSL: 0.0   # Hip Sagittal Left (HSL)
-  Kp_KL:  500.0   # Knee Left (KL)
+  Kp_KL:  0.0   # Knee Left (KL)
   Kp_HFR: 0.0   # Hip Frontal Right (HFR)
   Kp_HSR: 0.0   # Hip Sagittal Right (HSR)
   Kp_KR:  0.0   # Knee Right (KR)
 
   Kd_HFL: 0.0   # Hip Frontal Left (HFL)
   Kd_HSL: 0.0   # Hip Sagittal Left (HSL)
-  Kd_KL:  1.0   # Knee Left (KL)
+  Kd_KL:  0.0   # Knee Left (KL)
   Kd_HFR: 0.0   # Hip Frontal Right (HFR)
   Kd_HSR: 0.0   # Hip Sagittal Right (HSR)
   Kd_KR:  0.0   # Knee Right (KR)
@@ -30,4 +30,6 @@ gains:
   Kff_KR:  0.0   # Knee Right (KR)
 
 ############################################################################
+
+
 

@@ -25,6 +25,7 @@
 #define HIP_CONVERSION 2*M_PI/CPR/HIP_GR
 #define KNEE_CONVERSION 2*M_PI/CPR/KNEE_GR
 
+// struct for joint gains
 struct JointGains {
 
     // proportional gains
@@ -52,6 +53,10 @@ struct JointGains {
     double Kff_KR;
 };
 
+// variable for joint data
+typedef Eigen::Matrix< double, 12, 1> JointVec; // vector for joint state
+typedef Eigen::Matrix< double, 6, 1> JointTorque;       // vector for feedforward torque
+
 //  A class that enables communication between the computer and motor controllers
 class ELMOInterface {
     
@@ -68,12 +73,12 @@ class ELMOInterface {
         void setGains(JointGains gains);
 
         // function to get encoder data
-        Eigen::VectorXd getEncoderData();
+        JointVec getEncoderData();
 
         // functions to compute and send target torque to the ELMO
-        Eigen::VectorXd computeTorque(Eigen::VectorXd joint_ref, 
-                                      Eigen::VectorXd tau_ff);
-        void sendTorque(Eigen::VectorXd torque);
+        JointTorque computeTorque(JointVec joint_ref, 
+                                  JointTorque tau_ff);
+        void sendTorque(JointTorque torque);
 
     private:
 

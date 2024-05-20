@@ -23,7 +23,7 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     /* Thread to catch ELMO errors and act appropriately */
     pthread_create( &thread1, NULL, &ecatcheck, (void (*)) &ctime);
 
-    /* Thread to communicate with ELMO. Send and receive data*/
+    /* Thread to communicate with ELMO. Send and receive data */
     pthread_create( &thread2, NULL, &ELMOcommunication, (void (*)) &this->data);
 
     // Wait for communication to be set up
@@ -38,27 +38,35 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     printf("Ready.\n");
 }
 
-
 // function to set the low level control gains
 void ELMOInterface::setGains(JointGains gains) {
+
     // set the gains
     this->gains = gains;
 }
 
-// function to get the raw encoder data from ELMO
-Eigen::VectorXd ELMOInterface::getEncoderData() {
-    
+// function to get the raw encoder data from ELMO (reordered)
+JointVec ELMOInterface::getEncoderData() {
+
     // declare variables for the incoming data
     int32 pos[6];
     int32 vel[6];
-    Eigen::VectorXd data(12);
+    JointVec data(12);
 
     // copy the incoming data to the declared variables
     memcpy(pos, this->data->pos, sizeof(pos));
     memcpy(vel, this->data->vel, sizeof(vel));
     
+    // print the hip frontal and sagittal positions
+    // std::cout << "Q Hip Frontal Left: " << pos[0] << std::endl;
+    // std::cout << "Q Hip Sagittal Left: " << pos[1] << std::endl;
+
+    // // print the velocity of the hip frontal and sagittal
+    // std::cout << "V Hip Frontal Left: " << vel[0] << std::endl;
+    // std::cout << "V Hip Sagittal Left: " << vel[1] << std::endl;
+
     // poulate the Eigen vector with reordered data
-    data.setZero();
+    // data.setZero();
     data << pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
             pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
             pos[3] * KNEE_CONVERSION, // (KL) Knee Left
@@ -71,18 +79,30 @@ Eigen::VectorXd ELMOInterface::getEncoderData() {
             vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
             vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
             vel[5] * KNEE_CONVERSION; // (KR) Knee Right
+    // data << static_cast<double>(pos[0]) * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+    //         static_cast<double>(pos[1]) * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+    //         static_cast<double>(pos[3]) * KNEE_CONVERSION, // (KL) Knee Left
+    //         static_cast<double>(pos[4]) * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+    //     static_cast<double>(pos[2]) * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+    //     static_cast<double>(pos[5]) * KNEE_CONVERSION, // (KR) Knee Right
+    //     static_cast<double>(vel[0]) * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+    //     static_cast<double>(vel[1]) * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+    //     static_cast<double>(vel[3]) * KNEE_CONVERSION, // (KL) Knee Left
+    //     static_cast<double>(vel[4]) * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+    //     static_cast<double>(vel[2]) * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+    //     static_cast<double>(vel[5]) * KNEE_CONVERSION; // (KR) Knee Right
 
     return data;
 }
 
-// function to compute the torque command
-Eigen::VectorXd ELMOInterface::computeTorque(Eigen::VectorXd joint_ref, Eigen::VectorXd tau_ff) {
-    
+// function to compute the torque command (ordered the right way)
+JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff) {
+
     // get the current joint state
-    Eigen::VectorXd joint_data = this->getEncoderData();
+    JointVec joint_data = this->getEncoderData();
 
     // intialize the torque vector
-    Eigen::VectorXd tau(6);
+    JointTorque tau;
     double tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
 
     // compute the torque for each joint
@@ -110,14 +130,14 @@ Eigen::VectorXd ELMOInterface::computeTorque(Eigen::VectorXd joint_ref, Eigen::V
             + this->gains.Kd_KR * (joint_ref(11) - joint_data(11))
             + this->gains.Kff_KR * tau_ff(5);
 
-    // set torque to zero if the joint data is 10 degrees away from zero for all joints
+    // return the torque vector
     tau << tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
 
     return tau;
 }
 
 // function to send target torque to the ELMO
-void ELMOInterface::sendTorque(Eigen::VectorXd torque) {
+void ELMOInterface::sendTorque(JointTorque torque) {
     
     // unpack the torque vector
     double tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
@@ -128,13 +148,14 @@ void ELMOInterface::sendTorque(Eigen::VectorXd torque) {
     tau_HSR = torque(4);
     tau_KR  = torque(5);
 
-    // reorder the torques to match the ELMO order
-    Eigen::VectorXd torque_applied(6);
+    // reorder the torques to match the ELMO daisy chain order
+    JointTorque torque_applied;
     torque_applied << tau_HFL, tau_HSL, tau_HSR, tau_KL, tau_HFR, tau_KR;
 
-    // populate the data pointer with the torque values
+    torque_applied.setZero();  
+
+    // populate the data pointer with the torque values (cast to int16)
     for (int i = 0; i < 6; i++) {
         this->data->torque[i] = (int16) torque_applied(i);
     }
-
 }

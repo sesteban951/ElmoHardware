@@ -2,6 +2,10 @@
 // standard imports
 #include <thread>
 #include <chrono>
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 // Other imports 
 #include <yaml-cpp/yaml.h>
@@ -52,6 +56,11 @@ int main() {
     gains.Kff_HSR = config["gains"]["Kff_HSR"].as<double>();
     gains.Kff_KR = config["gains"]["Kff_KR"].as<double>();
 
+    // for logging purposes
+    std::string log_file = "../data/data.csv";
+    std::ofstream file;
+    file.open(log_file);
+
     //***************************************************************
     // DO STUFF
 
@@ -65,26 +74,46 @@ int main() {
     pthread_t thread1, thread2;
     elmo.initELMO(port, thread1, thread2);
 
+    // initialize the intial time
+    auto start = std::chrono::high_resolution_clock::now();
+
     // get encoder data
-    for (;;) {
-        
+    for (;;){
+
         std::cout << "\n-----------------------------------------\n" << std::endl;
 
+        // get the current time in seconds
+        auto now = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start);
+        double time = duration.count() / 1'000'000'000.0; // convert to seconds
+        
+        std::cout << "Time: " << time << std::endl;
+
         // get the current encoder data
-        Eigen::VectorXd data = elmo.getEncoderData();
+        JointVec data = elmo.getEncoderData();
 
         // get the calculated torque command
-        Eigen::VectorXd joint_ref(12);
+        JointVec joint_ref;
         joint_ref.setZero();
-        Eigen::VectorXd tau_ff(6);
+
+        // get the desired feedforawrd torque
+        JointTorque tau_ff;
         tau_ff.setZero();
-        Eigen::VectorXd tau = elmo.computeTorque(joint_ref, tau_ff);
+
+        // compute the net torque command
+        JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
         elmo.sendTorque(tau);
 
-        std::cout << "Encoder Data: " << data(2) << std::endl;
-        std::cout << "Torque Command: " << tau(2) << std::endl;
+        // std::cout << "q1_hip: " << data(0) << std::endl;
+        // std::cout << "v1_hip: " << data(6) << std::endl;
+        // std::cout << "Torque Command: " << tau(0) << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(500)); // Sleep for nanoseconds
+        // log the encoder data
+        file << time << ", "
+             << data(0) << ", " << data(1) << ", " << data(2) << ", " << data(3) << ", " << data(4) << ", " << data(5) << ", " 
+             << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << "\n";
+
+        std::this_thread::sleep_for(std::chrono::nanoseconds(500)); // Sleep for nano seconds
     }
 
     //***************************************************************

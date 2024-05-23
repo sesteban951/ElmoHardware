@@ -1,5 +1,7 @@
 #include "../inc/ElmoInterface.h"
 
+#include <thread>
+#include <chrono>
 
 // function to intialize the ELMO motor controllers
 void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
@@ -20,11 +22,17 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
 
     printf("SOEM (Simple Open EtherCAT Master)\nSetting Up ELMO drivers...\n");
 
+    // std::this_thread::sleep_for(std::chrono::seconds(1));
+    
     /* Thread to catch ELMO errors and act appropriately */
     pthread_create( &thread1, NULL, &ecatcheck, (void (*)) &ctime);
-
+    
+    // std::this_thread::sleep_for(std::chrono::seconds(1)); 
+    
     /* Thread to communicate with ELMO. Send and receive data */
     pthread_create( &thread2, NULL, &ELMOcommunication, (void (*)) &this->data);
+
+    // std::this_thread::sleep_for(std::chrono::seconds(1)); 
 
     // Wait for communication to be set up
     while(this->data->commStatus != 1) {
@@ -36,6 +44,7 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     };
 
     printf("Ready.\n");
+    usleep(1000);
 }
 
 // function to set the low level control gains
@@ -51,23 +60,15 @@ JointVec ELMOInterface::getEncoderData() {
     // declare variables for the incoming data
     int32 pos[6];
     int32 vel[6];
-    JointVec data(12);
+    JointVec tmp(12);
 
     // copy the incoming data to the declared variables
     memcpy(pos, this->data->pos, sizeof(pos));
     memcpy(vel, this->data->vel, sizeof(vel));
-    
-    // print the hip frontal and sagittal positions
-    // std::cout << "Q Hip Frontal Left: " << pos[0] << std::endl;
-    // std::cout << "Q Hip Sagittal Left: " << pos[1] << std::endl;
-
-    // // print the velocity of the hip frontal and sagittal
-    // std::cout << "V Hip Frontal Left: " << vel[0] << std::endl;
-    // std::cout << "V Hip Sagittal Left: " << vel[1] << std::endl;
 
     // poulate the Eigen vector with reordered data
-    // data.setZero();
-    data << pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+    tmp.setZero();
+    tmp << pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
             pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
             pos[3] * KNEE_CONVERSION, // (KL) Knee Left
             pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
@@ -79,20 +80,8 @@ JointVec ELMOInterface::getEncoderData() {
             vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
             vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
             vel[5] * KNEE_CONVERSION; // (KR) Knee Right
-    // data << static_cast<double>(pos[0]) * HIP_CONVERSION,  // (HFL) Hip Frontal Left
-    //         static_cast<double>(pos[1]) * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
-    //         static_cast<double>(pos[3]) * KNEE_CONVERSION, // (KL) Knee Left
-    //         static_cast<double>(pos[4]) * HIP_CONVERSION,  // (HFR) Hip Frontal Right
-    //     static_cast<double>(pos[2]) * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
-    //     static_cast<double>(pos[5]) * KNEE_CONVERSION, // (KR) Knee Right
-    //     static_cast<double>(vel[0]) * HIP_CONVERSION,  // (HFL) Hip Frontal Left
-    //     static_cast<double>(vel[1]) * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
-    //     static_cast<double>(vel[3]) * KNEE_CONVERSION, // (KL) Knee Left
-    //     static_cast<double>(vel[4]) * HIP_CONVERSION,  // (HFR) Hip Frontal Right
-    //     static_cast<double>(vel[2]) * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
-    //     static_cast<double>(vel[5]) * KNEE_CONVERSION; // (KR) Knee Right
 
-    return data;
+    return tmp;
 }
 
 // function to compute the torque command (ordered the right way)
@@ -128,10 +117,20 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
 
     tau_KR = this->gains.Kp_KR * (joint_ref(5) - joint_data(5))
             + this->gains.Kd_KR * (joint_ref(11) - joint_data(11))
-            + this->gains.Kff_KR * tau_ff(5);
+            + this->gains.Kff_KR * tau_ff(5); 
 
     // return the torque vector
     tau << tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
+
+    // DEBUGING
+    // if any joint deviates 20 degrees from zero, set all torques to zero
+    for (int i = 0; i < 6; i++) {
+
+        if (abs(joint_data(i)) > 0.35) {
+            tau.setZero();
+            std::cout << "Joint " << i << " is out of bounds! Setting all torques to zero." << std::endl;
+        }
+    }
 
     return tau;
 }
@@ -151,8 +150,6 @@ void ELMOInterface::sendTorque(JointTorque torque) {
     // reorder the torques to match the ELMO daisy chain order
     JointTorque torque_applied;
     torque_applied << tau_HFL, tau_HSL, tau_HSR, tau_KL, tau_HFR, tau_KR;
-
-    torque_applied.setZero();  
 
     // populate the data pointer with the torque values (cast to int16)
     for (int i = 0; i < 6; i++) {

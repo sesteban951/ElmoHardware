@@ -1,5 +1,6 @@
 
 #include "../inc/ElmoComm.h"
+#include <bitset>
 
 #define EC_TIMEOUTMON 500
 
@@ -13,7 +14,6 @@ boolean inOP;
 uint8 currentgroup = 0;
 char usdo[128];
 char hstr[1024];
-
 
 // **************************************************************************************************************************//
 
@@ -113,7 +113,8 @@ void *ELMOcommunication(void *data) {
             /** set PDO mapping */
             int32 ob2;int os;
             for (int i=1; i<=ec_slavecount; i++) {                
-                os=sizeof(ob2); ob2 = 0x16020001;                           //  set to 'Target Torque' (0x6071:0)
+                os=sizeof(ob2); ob2 = 0x16020001;                           //  set to 'Target Torque'
+                // os=sizeof(ob2); ob2 = 0x16000001;                           //  set to 'Target Position' 
                 ec_SDOwrite(i, 0x1c12, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
                 os=sizeof(ob2); ob2 = 0x1a030001;
                 ec_SDOwrite(i, 0x1c13, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
@@ -131,7 +132,7 @@ void *ELMOcommunication(void *data) {
             
             /** if CA disable => automapping works */
             ec_config_map(&IOmap); 
-            ec_configdc(); // what is this for? (Noel)
+            ec_configdc(); 
 
             // show slave info
             /* prints out the mapping for each slave:
@@ -170,7 +171,8 @@ void *ELMOcommunication(void *data) {
             printf("Calculated workcounter %d\n", expectedWKC);
 
             /** going operational */
-            ec_slave[0].state = EC_STATE_OPERATIONAL;
+            ec_slave[i].state = EC_STATE_OPERATIONAL;
+
             /* send one valid process data to make outputs in slaves happy*/
             ec_send_processdata();
             ec_receive_processdata(EC_TIMEOUTRET);
@@ -233,7 +235,7 @@ void *ELMOcommunication(void *data) {
                 /* cyclic loop for all slaves, "j+1" b/c slaves are 1-indexed*/
                 for (int j = 0; j <ec_slavecount; j++) {
 
-                  target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs); // data struct to send to ELMO
+                  target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs); // data struct to send to ELMO    
                   
                   val[j] = (struct ELMOIn *)(ec_slave[j+1].inputs);      // data struct to receive from ELMO
                 }
@@ -250,50 +252,71 @@ void *ELMOcommunication(void *data) {
 
                     if(wkc >= expectedWKC) {
 
-                        /** if in fault or in the way to normal status, we update the state machine */
+                        /** if in fault or on the way to normal status, we update the state machine */
                         for (int j =0; j < ec_slavecount; j++) {
                           switch(target[j]->controlword){
                             case 0:
                                 target[j]->controlword = 6; // Enable voltage, quick stop
+                                // std::c out << "Joint " << j << " assigned 6 control word." << std::endl;
+                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 6:
                                 target[j]->controlword = 7; // switch on
+                                // std::cout << "Joint " << j << " assigned 7 control word." << std::endl;
+                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 7:
                                 target[j]->controlword = 15; // enable operation
+                                // std::cout << "Joint " << j << " assigned 15 control word." << std::endl;
+                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 128:
                                 target[j]->controlword = 0; // reset
+                                // std::cout << "Joint " << j << " assigned 0 control word." << std::endl;
+                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             default:
                                 if(val[j]->status >> 3 & 0x01) {
                                     READ(1, 0x1001, 0, buf8, "Error");
                                     target[j]->controlword = 128; // Halt
+                                    // std::cout << "Joint " << j << " assigned 128 control word." << std::endl;
+                                    // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 }
                           }
+
+                          /** we wait to be in ready-to-run mode and with initial value reached */
                           if(reachedInitial[j] == 0 && (val[j]->status & 0x0fff) == 0x0237){
+                              std::cout << "Joint " << j << " reached initial value 1." << std::endl;
                               reachedInitial[j] = 1;
                           }
                         }
 
-                        // update the data pointer with newest ELMO encoder data
-                        // set the target torques
+                        // this is where the MAGIC happens
                         for (int j = 0; j < 6; j++) {
+
+                          // update the data pointer with newest ELMO encoder data
                           data_pointer->pos[j] = val[j]->position;  
                           data_pointer->vel[j] = val[j]->velocity;
-                        
-                          if((val[j]->status & 0x0fff) == 0x0237 && reachedInitial[j]){
 
-                            // set all the desired torques
-                            target[j]->torque = (int16) data_pointer->torque[j];
-                            // target[j]->torque = (int16) 0; // DEBUGGING
+                          // print the status in 16-bit binary
+                        //   std::cout << "Status" << j << ": " << std::bitset<16>(val[j]->status) << std::endl;
+
+                          // if in ready-to-run mode and intial value reached, then apply the torque
+                          if((val[j]->status & 0x0fff) == 0x0237 && reachedInitial[j]){
+                            std::cout << "Joint " << j << " is in ready-to-run mode" << std::endl;
+                            // target[j]->torque = (int16) data_pointer->torque[j];
+                            target[j]->torque = (int16) 0; // DEBUGGING
                           }
+                        //   target[3]->torque = (int16) data_pointer->torque[3];
+                        //   std::cout << data_pointer->torque[3] << std::endl;
                         }
 
+                        // READ(4, 0x6071, 0, buf16, "TORQUE");
+                        
                         // print the torque values
                         // for (int i=1; i<=ec_slavecount; i++) {
-                            // READ(i, 0x6071, 0, buf16, "TORQUE");
-                            // READ(i, 0x6072, 0, buf16, "TORQUE_MAX");
+                        //     READ(i, 0x6071, 0, buf16, "TORQUE");
+                        //     // READ(i, 0x6072, 0, buf16, "TORQUE_MAX");
                         // }
 
                         // printf("  Time: %" PRId64 "\n",ec_DCtime);
@@ -344,7 +367,6 @@ void *ELMOcommunication(void *data) {
         printf("No socket connection on %s\nExcecute as root\n",ifname);
     }
 }
-
 
 // **************************************************************************************************************************//
 

@@ -80,23 +80,21 @@ int main() {
     // get encoder data
     for (;;){
 
-        std::cout << "\n-----------------------------------------\n" << std::endl;
+        // std::cout << "\n-----------------------------------------\n" << std::endl;
 
         // get the current time in seconds
         auto now = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(now - start);
-        double time = duration.count() / 1'000'000'000.0; // convert to seconds
-        
-        std::cout << "Time: " << time << std::endl;
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start);
+        double time = duration.count() / 1'000'000.0; // convert to seconds
 
         // get the current encoder data
         JointVec data = elmo.getEncoderData();
 
-        // get the calculated torque command
+        // specify some joint reference
         JointVec joint_ref;
         joint_ref.setZero();
 
-        // get the desired feedforawrd torque
+        // specify some feedforward torque
         JointTorque tau_ff;
         tau_ff.setZero();
 
@@ -104,21 +102,22 @@ int main() {
         JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
         elmo.sendTorque(tau);
 
-        // std::cout << "q1_hip: " << data(0) << std::endl;
-        // std::cout << "v1_hip: " << data(6) << std::endl;
-        // std::cout << "Torque Command: " << tau(0) << std::endl;
-
         // log the encoder data
         file << time << ", "
              << data(0) << ", " << data(1) << ", " << data(2) << ", " << data(3) << ", " << data(4) << ", " << data(5) << ", " 
-             << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << "\n";
+             << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << ", "
+             << tau(0) << ", " << tau(1) << ", " << tau(2) << ", " << tau(3) << ", " << tau(4) << ", " << tau(5) << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(500)); // Sleep for nano seconds
+        // print knee stuff
+        // std::cout << "Time: " << time << std::endl;
+        // std::cout << "q2: " << data(2) << std::endl;
+        // std::cout << "v2: " << data(8) << std::endl;
+        // std::cout << "tau2: " << tau(2) << std::endl;
+
+        std::this_thread::sleep_for(std::chrono::microseconds(500)); // Sleep for micro seconds
     }
 
     //***************************************************************
-
-    std::cout << "Everything looks good." << std::endl;
 
     return 0;
 }

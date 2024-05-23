@@ -2,6 +2,7 @@
 
 # my computer ethernet port (check this via 'ifconfig')
 ethernet: "enx00e04c68005e"
+# ethernet: "enx207bd29d4768"
 
 ############################################################################
 

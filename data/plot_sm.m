@@ -13,7 +13,7 @@ data = load('sw_cw.mat')
 
 cw = data.CW;
 sw = data.SW;
-[r, c] = size(cw)
+[r, c] = size(cw);
 
 hz = 500;
 t = linspace(0, r/hz, r);

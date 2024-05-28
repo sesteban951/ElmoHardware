@@ -1,5 +1,5 @@
 
-#include "../inc/ElmoComm.h"
+#include "../inc/ElmoComm.hpp"
 #include <bitset>
 
 #define EC_TIMEOUTMON 500
@@ -38,10 +38,10 @@ char hstr[1024];
 
 // Check for errors macro
 #define CHECKERROR(slaveId)   \
-    {   \
-        ec_readstate();\
-        printf("EC> \"%s\" %x - %x [%s] \n", (char*)ec_elist2string(), ec_slave[slaveId].state, ec_slave[slaveId].ALstatuscode, (char*)ec_ALstatuscode2string(ec_slave[slaveId].ALstatuscode));    \
-    }
+{   \
+    ec_readstate();\
+    printf("EC> \"%s\" %x - %x [%s] \n", (char*)ec_elist2string(), ec_slave[slaveId].state, ec_slave[slaveId].ALstatuscode, (char*)ec_ALstatuscode2string(ec_slave[slaveId].ALstatuscode));    \
+}
 
 
 // **************************************************************************************************************************//
@@ -99,34 +99,29 @@ void *ELMOcommunication(void *data) {
                 // Read at 0x6061:0 => wkc: 1; data: 0xa (10)	[OpMode display]
                 READ(i, 0x6061, 0, buf8, "OpMode display");
 
-                // Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
                 READ(i, 0x1c12, 0, buf32, "rxPDO:0");
-                // Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)
                 READ(i, 0x1c13, 0, buf32, "txPDO:0");
 
-                // Read at 0x1c12:1 => wkc: 1; data: 0x1 (1)	[rxPDO:1]                   
                 READ(i, 0x1c12, 1, buf32, "rxPDO:1");
-                // Read at 0x1c13:1 => wkc: 1; data: 0x1a00 (6656)	[txPDO:1]
                 READ(i, 0x1c13, 1, buf32, "txPDO:1");
             }
 
             /** set PDO mapping */
             int32 ob2;int os;
             for (int i=1; i<=ec_slavecount; i++) {                
-                os=sizeof(ob2); ob2 = 0x16020001;                           //  set to 'Target Torque'
-                // os=sizeof(ob2); ob2 = 0x16000001;                           //  set to 'Target Position' 
+
+                os=sizeof(ob2); ob2 = 0x16020001;            //  set to 'Target Torque'
+                // os=sizeof(ob2); ob2 = 0x16000001;            //  set to 'Target Position' 
                 ec_SDOwrite(i, 0x1c12, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
-                os=sizeof(ob2); ob2 = 0x1a030001;
+                
+                os=sizeof(ob2); ob2 = 0x1a030001;             //  set to 'Position/Velocity Actual Values'
+                // os=sizeof(ob2); ob2 = 0x1a000001;             // set to 'Position Actual Values'
                 ec_SDOwrite(i, 0x1c13, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
 
-                // Read at 0x1c12:0 => wkc: 1; data: 0x1 (1)	[rxPDO:0]
                 READ(i, 0x1c12, 0, buf32, "rxPDO:0");
-                // Read at 0x1c13:0 => wkc: 1; data: 0x1 (1)	[txPDO:0]
                 READ(i, 0x1c13, 0, buf32, "txPDO:0");
 
-                // Read at 0x1c12:1 => wkc: 1; data: 0x1602 (5634)	[rxPDO:1]
                 READ(i, 0x1c12, 1, buf32, "rxPDO:1");
-                // Read at 0x1c13:1 => wkc: 1; data: 0x1a03 (6659)	[txPDO:1]
                 READ(i, 0x1c13, 1, buf32, "txPDO:1");
             }
             
@@ -135,15 +130,6 @@ void *ELMOcommunication(void *data) {
             ec_configdc(); 
 
             // show slave info
-            /* prints out the mapping for each slave:
-                Slave: X
-                Name: Y  M: I:
-                Output size: Z bits
-                Input size: W bits
-                State: S
-                Delay: D[ns]
-                Has DC: Bool
-            */
             for (int i=1; i<=ec_slavecount; i++) {
                 printf("\nSlave:%d\n Name:%s\n Output size: %dbits\n Input size: %dbits\n State: %d\n Delay: %d[ns]\n Has DC: %d\n",
                 i, ec_slave[i].name, ec_slave[i].Obits, ec_slave[i].Ibits,
@@ -164,6 +150,15 @@ void *ELMOcommunication(void *data) {
             /* wait for all slaves to reach SAFE_OP state */
             ec_statecheck(0, EC_STATE_SAFE_OP,  EC_TIMEOUTSTATE * 4);
 
+            /** old SOEM code, inactive */
+            // int oloop, iloop;
+            // oloop = ec_slave[0].Obytes;
+            // if ((oloop == 0) && (ec_slave[0].Obits > 0)) oloop = 1;
+            // if (oloop > 20) oloop = 8;
+            // iloop = ec_slave[0].Ibytes;
+            // if ((iloop == 0) && (ec_slave[0].Ibits > 0)) iloop = 1;
+            // if (iloop > 20) iloop = 8;
+
             printf("segments : %d : %d %d %d %d\n",ec_group[0].nsegments ,ec_group[0].IOsegment[0],ec_group[0].IOsegment[1],ec_group[0].IOsegment[2],ec_group[0].IOsegment[3]);
 
             printf("Request operational state for all slaves\n");
@@ -171,7 +166,7 @@ void *ELMOcommunication(void *data) {
             printf("Calculated workcounter %d\n", expectedWKC);
 
             /** going operational */
-            ec_slave[i].state = EC_STATE_OPERATIONAL;
+            ec_slave[0].state = EC_STATE_OPERATIONAL;
 
             /* send one valid process data to make outputs in slaves happy*/
             ec_send_processdata();
@@ -213,22 +208,23 @@ void *ELMOcommunication(void *data) {
                     }
 
                     WRITE(i, 0x6040, 0, buf16, 0, "*control word*"); usleep(100000);
-                    READ(i, 0x6041, 0, buf16, "*status word*");
+                    READ(i, 0x6041, 0, buf16, "*status word*"); 
 
                     WRITE(i, 0x6040, 0, buf16, 6, "*control word*"); usleep(100000);
-                    READ(i, 0x6041, 0, buf16, "*status word*");
+                    READ(i, 0x6041, 0, buf16, "*status word*"); 
 
                     WRITE(i, 0x6040, 0, buf16, 7, "*control word*"); usleep(100000);
-                    READ(i, 0x6041, 0, buf16, "*status word*");
+                    READ(i, 0x6041, 0, buf16, "*status word*"); 
 
                     WRITE(i, 0x6040, 0, buf16, 15, "*control word*"); usleep(100000);
-                    READ(i, 0x6041, 0, buf16, "*status word*");
+                    READ(i, 0x6041, 0, buf16, "*status word*"); 
 
                     CHECKERROR(i);
                     READ(i, 0x1a0b, 0, buf8, "OpMode Display");
 
                     READ(i, 0x1001, 0, buf8, "Error");
                 }
+
                 int reachedInitial[] = {0,0,0,0,0,0};        
 
                 // assign the ElmoIn and ElmoOut structs to each ELMO motor controller
@@ -236,11 +232,99 @@ void *ELMOcommunication(void *data) {
                 for (int j = 0; j <ec_slavecount; j++) {
 
                   target[j] = (struct ELMOOut *)(ec_slave[j+1].outputs); // data struct to send to ELMO    
-                  
                   val[j] = (struct ELMOIn *)(ec_slave[j+1].inputs);      // data struct to receive from ELMO
                 }
 
                 //----------------------------------------- Main Loop ------------------------------------------//
+
+                // // do this loop to check if ready to for operation
+                // while(1) {
+                //     /** PDO I/O refresh */
+                //     ec_send_processdata();
+                //     wkc = ec_receive_processdata(EC_TIMEOUTRET);
+                //     std::cout << "------------------------------------------\n" << std::endl;
+
+                //     if(wkc >= expectedWKC) {
+                        
+                //         int idx =0;
+
+                //         // Do it for the first elmo slave
+                //         uint16_t ctrlWord_tmp = 0;
+                //         // target[idx]->controlword = 0; // Enable voltage, quick stop
+                //         uint16 statusWord = val[idx]->status;
+                //         std::cout << "Status: " << statusWord << std::endl;
+
+                //         if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
+                //             // NOT READY
+                //             std::cout << "Drive NOT ready \n" << std::endl;
+                //             usleep(2000);
+                //         } 
+                //         else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
+                //             // SDO
+                //             std::cout << "Drive is in SDO \n" << std::endl;
+                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
+                //             // target[0]->controlword = 6; 
+                //             // target[idx]->controlword = ctrlWord_tmp; 
+                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                //             usleep(2000);
+                //         }
+                //         else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                //             // RSO
+                //             std::cout << "Drive is in RSO \n" << std::endl;
+                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                //             // target[0]->controlword = 7;
+                //             // target[idx]->controlword = ctrlWord_tmp; 
+                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                //             usleep(2000);
+                //         }
+                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                //             // SO
+                //             std::cout << "Drive in SO \n" << std::endl;
+                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
+                //             // target[0]->controlword = 15;
+                //             // target[idx]->controlword = ctrlWord_tmp;
+                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                //             usleep(2000);
+                //         }
+                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                //             // ARMED
+                //             std::cout << "Drive ARMED \n" << std::endl;
+                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                //             ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
+                //             // target[0]->controlword = 15;
+                //             // target[idx]->controlword = ctrlWord_tmp;
+                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                //             usleep(2000);
+                //         }
+                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
+                //             // FAILED
+                //             std::cout << "Drive QUICK STOPPED \n" << std::endl;
+                //         }
+                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                //             //FAILED
+                //             std::cout << "Drive FAILED: fault reaction active \n" << std::endl;
+                //         }
+                //         else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                //             // FAILED
+                //             std::cout << "Drive FAILED: fault" << std::endl;
+                //         }
+                //         else{
+                //             // unknown state
+                //             std::cout << "Drive FAILED: unknown state" << std::endl;
+                //         }
+
+                //         target[idx]->controlword = ctrlWord_tmp;
+                //     }
+                //     usleep(500);
+                // }
 
                 // Ready
                 data_pointer->commStatus = 1;
@@ -251,36 +335,26 @@ void *ELMOcommunication(void *data) {
                     wkc = ec_receive_processdata(EC_TIMEOUTRET);
 
                     if(wkc >= expectedWKC) {
-
-                        /** if in fault or on the way to normal status, we update the state machine */
                         for (int j =0; j < ec_slavecount; j++) {
                           switch(target[j]->controlword){
+                            
+                            /** if in fault or on the way to normal status, we update the state machine */
                             case 0:
                                 target[j]->controlword = 6; // Enable voltage, quick stop
-                                // std::c out << "Joint " << j << " assigned 6 control word." << std::endl;
-                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 6:
                                 target[j]->controlword = 7; // switch on
-                                // std::cout << "Joint " << j << " assigned 7 control word." << std::endl;
-                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 7:
                                 target[j]->controlword = 15; // enable operation
-                                // std::cout << "Joint " << j << " assigned 15 control word." << std::endl;
-                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             case 128:
                                 target[j]->controlword = 0; // reset
-                                // std::cout << "Joint " << j << " assigned 0 control word." << std::endl;
-                                // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 break;
                             default:
                                 if(val[j]->status >> 3 & 0x01) {
                                     READ(1, 0x1001, 0, buf8, "Error");
                                     target[j]->controlword = 128; // Halt
-                                    // std::cout << "Joint " << j << " assigned 128 control word." << std::endl;
-                                    // std::cout << "Status" << j << " is " << std::bitset<16>(val[j]->status) << std::endl;
                                 }
                           }
 
@@ -297,18 +371,16 @@ void *ELMOcommunication(void *data) {
                           // update the data pointer with newest ELMO encoder data
                           data_pointer->pos[j] = val[j]->position;  
                           data_pointer->vel[j] = val[j]->velocity;
-
-                          // print the status in 16-bit binary
-                        //   std::cout << "Status" << j << ": " << std::bitset<16>(val[j]->status) << std::endl;
+                          data_pointer->status[j] = val[j]->status;
 
                           // if in ready-to-run mode and intial value reached, then apply the torque
                           if((val[j]->status & 0x0fff) == 0x0237 && reachedInitial[j]){
-                            std::cout << "Joint " << j << " is in ready-to-run mode" << std::endl;
                             // target[j]->torque = (int16) data_pointer->torque[j];
                             target[j]->torque = (int16) 0; // DEBUGGING
+                            // target[j]->position = (int16) 0; // DEBUGGING
                           }
-                        //   target[3]->torque = (int16) data_pointer->torque[3];
-                        //   std::cout << data_pointer->torque[3] << std::endl;
+                            //   target[3]->torque = (int16) data_pointer->torque[3];
+                            //   std::cout << data_pointer->torque[3] << std::endl;
                         }
 
                         // READ(4, 0x6071, 0, buf16, "TORQUE");
@@ -319,13 +391,10 @@ void *ELMOcommunication(void *data) {
                         //     // READ(i, 0x6072, 0, buf16, "TORQUE_MAX");
                         // }
 
-                        // printf("  Time: %" PRId64 "\n",ec_DCtime);
-                        // printf("\r");
                         needlf = TRUE;
                     }
                     
                     usleep(1000);
-                    // usleep(500);
                 }
                 inOP = FALSE;
             }

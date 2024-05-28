@@ -5,12 +5,15 @@ close all; clc; clear;
 
 % Load data
 data = importdata('data.csv');
+status_data = importdata('diagnostics.csv');
 
 % extract the data
 time = data(:,1);
 joint_pos = data(:,2:7);
 joint_vel = data(:,8:13);
 joint_tau = data(:,14:19);
+
+status = status_data(:,2:7);
 
 % desired time range
 start_time = 0;
@@ -20,6 +23,7 @@ time = time(idx);
 joint_pos = joint_pos(idx,:);
 joint_vel = joint_vel(idx,:);
 joint_tau = joint_tau(idx,:);
+status = status(idx,:);
 
 % tab plot the left leg. 
 figure('Name','Joint Positions');
@@ -51,4 +55,14 @@ for i = 1:6
     % yline(0);
     grid on;
 
+end
+
+figure('Name','Status Word');
+for i = 1:6
+    subplot(2,3,i);
+    plot(time, status(:,i));
+    title(labels(i));
+    xlabel('Time (s)');
+    ylabel('Status');
+    grid on;
 end

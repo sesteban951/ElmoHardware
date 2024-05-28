@@ -42,27 +42,37 @@ struct ELMOData{
   uint16 status[6]; // status of each motor
 };
 
-// // struct to hold out-going data, Laptop --> ELMO
+// struct to hold out-going data, Laptop --> ELMO
+// Torque Control (x1602)
 struct ELMOOut {
-    int16 torque;       // "Torque Command"
-    uint16 controlword; // "Control Word", converted to binary and use DS402 SM, 6040
+   int16_t torque;       // "Torque Command"
+   uint16_t controlword; // "Control Word", converted to binary and use DS402 SM, 6040
 };
 
 // struct to hold out-going data, Laptop --> ELMO
+// Position Control (x1600)
 // struct ELMOOut {
-//     int32 position;       // "Position Command"
-//     int32 inputs;       // "Digital Inputs"
-//     uint16 controlword; // "Control Word", converted to binary and use DS402 SM, 6040
+//      int32 position;      // "Position Command"
+//      uint32 inputs;       // "Digital Inputs"
+//      uint16 controlword;  // "Control Word", converted to binary and use DS402 SM, 6040
 // };
 
 // struct to hold in-coming data, ELMO --> Laptop
-// PDO Index: 0x1A03
+// Pos and Vel (0x1A03)
 struct ELMOIn {
-    int32 position;  // "Position Actual Value"
-    uint32 inputs;   // "Digital Inputs"
-    int32 velocity;  // "Velocity Actual Value"
-    uint16 status;   // "Status Word", converted to binary and use DS402 SM, 6041
+    int32_t position;  // "Position Actual Value"
+    uint32_t inputs;   // "Digital Inputs"
+    int32_t velocity;  // "Velocity Actual Value"
+    uint16_t status;   // "Status Word", converted to binary and use DS402 SM, 6041
 };
+
+// struct to hold in-coming data, ELMO --> Laptop
+// Pos (0x1A00)
+// struct ELMOIn {
+//     int32 position;  // "Position Actual Value"
+//     uint32 inputs;   // "Digital Inputs"
+//     uint16 status;   // "Status Word", converted to binary and use DS402 SM, 6041
+// };
 
 // struct for program state
 enum programState {Initializing, 

@@ -24,14 +24,22 @@ find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 # add  libraries
-add_library(ELMOCOMM src/ElmoComm.cpp inc/ElmoComm.h)
+add_library(ELMOCOMM src/ElmoComm.cpp inc/ElmoComm.hpp)
 target_link_libraries(ELMOCOMM PUBLIC soem)
-add_library(ELMOINTERFACE src/ElmoInterface.cpp inc/ElmoInterface.h)
+add_library(ELMOINTERFACE src/ElmoInterface.cpp inc/ElmoInterface.hpp)
 target_link_libraries(ELMOINTERFACE PUBLIC ELMOCOMM Eigen3::Eigen)
 
-# executables
-add_executable(s src/main.cpp)
+# main executable
+add_executable(s src/main.cpp)               
 target_link_libraries(s PUBLIC ELMOCOMM)
 target_link_libraries(s PUBLIC ELMOINTERFACE)
 target_link_libraries(s PUBLIC Eigen3::Eigen)
 target_link_libraries(s PUBLIC yaml-cpp)
+
+# SOEM simple test executable
+add_executable(simple_test src/simple_test.c)
+target_link_libraries(simple_test soem)
+
+# mgruhler torque example executable
+add_executable(torque_examples_2drivers src/torque_examples_2drivers.cpp)
+target_link_libraries(torque_examples_2drivers soem)

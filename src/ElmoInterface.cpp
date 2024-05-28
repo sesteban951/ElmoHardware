@@ -1,4 +1,4 @@
-#include "../inc/ElmoInterface.h"
+#include "../inc/ElmoInterface.hpp"
 
 #include <thread>
 #include <chrono>
@@ -21,18 +21,12 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     strcpy(this->data->port, port);                     // attach the ethernet port
 
     printf("SOEM (Simple Open EtherCAT Master)\nSetting Up ELMO drivers...\n");
-
-    // std::this_thread::sleep_for(std::chrono::seconds(1));
     
     /* Thread to catch ELMO errors and act appropriately */
     pthread_create( &thread1, NULL, &ecatcheck, (void (*)) &ctime);
     
-    // std::this_thread::sleep_for(std::chrono::seconds(1)); 
-    
     /* Thread to communicate with ELMO. Send and receive data */
     pthread_create( &thread2, NULL, &ELMOcommunication, (void (*)) &this->data);
-
-    // std::this_thread::sleep_for(std::chrono::seconds(1)); 
 
     // Wait for communication to be set up
     while(this->data->commStatus != 1) {
@@ -44,7 +38,7 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     };
 
     printf("Ready.\n");
-    usleep(1000);
+    usleep(3000);
 }
 
 // function to set the low level control gains
@@ -52,6 +46,27 @@ void ELMOInterface::setGains(JointGains gains) {
 
     // set the gains
     this->gains = gains;
+}
+
+// function to get the ELMO status (reordered)
+ELMOStatus ELMOInterface::getELMOStatus() {
+
+    // declare variables for the incoming data
+    uint16 joint_status[6];
+    ELMOStatus tmp(6);
+
+    // copy the incoming data to the declared variables
+    memcpy(joint_status, this->data->status, sizeof(joint_status));
+
+    // poulate the Eigen vector with reordered data
+    tmp <<  joint_status[0],  // (HFL) Hip Frontal Left
+            joint_status[1],  // (HSL) Hip Sagittal Left
+            joint_status[3],  // (KL) Knee Left
+            joint_status[4],  // (HFR) Hip Frontal Right
+            joint_status[2],  // (HSR) Hip Sagittal Right
+            joint_status[5];  // (KR) Knee Right
+
+    return tmp;
 }
 
 // function to get the raw encoder data from ELMO (reordered)
@@ -68,7 +83,7 @@ JointVec ELMOInterface::getEncoderData() {
 
     // poulate the Eigen vector with reordered data
     tmp.setZero();
-    tmp << pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+    tmp <<  pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
             pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
             pos[3] * KNEE_CONVERSION, // (KL) Knee Left
             pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
@@ -80,6 +95,13 @@ JointVec ELMOInterface::getEncoderData() {
             vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
             vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
             vel[5] * KNEE_CONVERSION; // (KR) Knee Right
+    // tmp <<  pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+    //         pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+    //         pos[3] * KNEE_CONVERSION, // (KL) Knee Left
+    //         pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+    //         pos[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+    //         pos[5] * KNEE_CONVERSION, // (KR) Knee Right
+    //         0,0,0,0,0,0;
 
     return tmp;
 }

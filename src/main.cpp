@@ -12,8 +12,8 @@
 #include <Eigen/Dense>
 
 // Custom ELMO libraries
-#include "../inc/ElmoComm.h"
-#include "../inc/ElmoInterface.h"
+#include "../inc/ElmoComm.hpp"
+#include "../inc/ElmoInterface.hpp"
 
 // char array to hold the ethernet port name
 char port[1028];
@@ -57,9 +57,12 @@ int main() {
     gains.Kff_KR = config["gains"]["Kff_KR"].as<double>();
 
     // for logging purposes
-    std::string log_file = "../data/data.csv";
-    std::ofstream file;
-    file.open(log_file);
+    std::string log_file_data = "../data/data.csv";
+    std::string log_file_diagnostics = "../data/diagnostics.csv";
+    std::ofstream file_data;
+    std::ofstream file_diagnostics;
+    file_data.open(log_file_data);
+    file_diagnostics.open(log_file_diagnostics);
 
     //***************************************************************
     // DO STUFF
@@ -87,6 +90,9 @@ int main() {
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start);
         double time = duration.count() / 1'000'000.0; // convert to seconds
 
+        // get the currebt ELMO status
+        ELMOStatus status = elmo.getELMOStatus();
+
         // get the current encoder data
         JointVec data = elmo.getEncoderData();
 
@@ -103,16 +109,13 @@ int main() {
         elmo.sendTorque(tau);
 
         // log the encoder data
-        file << time << ", "
-             << data(0) << ", " << data(1) << ", " << data(2) << ", " << data(3) << ", " << data(4) << ", " << data(5) << ", " 
-             << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << ", "
-             << tau(0) << ", " << tau(1) << ", " << tau(2) << ", " << tau(3) << ", " << tau(4) << ", " << tau(5) << std::endl;
+        file_data << time << ", "
+                  << data(0) << ", " << data(1) << ", " << data(2) << ", " << data(3) << ", " << data(4) << ", " << data(5) << ", " 
+                  << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << ", "
+                  << tau(0) << ", " << tau(1) << ", " << tau(2) << ", " << tau(3) << ", " << tau(4) << ", " << tau(5) << std::endl;
 
-        // print knee stuff
-        // std::cout << "Time: " << time << std::endl;
-        // std::cout << "q2: " << data(2) << std::endl;
-        // std::cout << "v2: " << data(8) << std::endl;
-        // std::cout << "tau2: " << tau(2) << std::endl;
+        file_diagnostics << time << ", "
+                         << status(0) << ", " << status(1) << ", " << status(2) << ", " << status(3) << ", " << status(4) << ", " << status(5) << std::endl;
 
         std::this_thread::sleep_for(std::chrono::microseconds(500)); // Sleep for micro seconds
     }

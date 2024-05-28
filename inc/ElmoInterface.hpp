@@ -2,7 +2,7 @@
 #define ELMOINTERFACE_H
 
 // we will also use the ELMO communication header
-#include "ElmoComm.h"
+#include "ElmoComm.hpp"
 
 // standard headers
 #include <Eigen/Dense>
@@ -54,8 +54,9 @@ struct JointGains {
 };
 
 // variable for joint data
-typedef Eigen::Matrix< double, 12, 1> JointVec; // vector for joint state
-typedef Eigen::Matrix< double, 6, 1> JointTorque;       // vector for feedforward torque
+typedef Eigen::Matrix< double, 12, 1> JointVec;    // vector for joint state
+typedef Eigen::Matrix< double, 6, 1> JointTorque;  // vector for feedforward torque
+typedef Eigen::Matrix< double, 6, 1> ELMOStatus;   // status of each motor controller
 
 //  A class that enables communication between the computer and motor controllers
 class ELMOInterface {
@@ -71,6 +72,9 @@ class ELMOInterface {
 
         // function to set the low levcel control gains
         void setGains(JointGains gains);
+
+        // function to get teh ELMO status
+        ELMOStatus getELMOStatus();
 
         // function to get encoder data
         JointVec getEncoderData();

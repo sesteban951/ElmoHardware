@@ -2,6 +2,8 @@
 #include "../inc/ElmoComm.hpp"
 #include <bitset>
 
+#include <chrono>
+
 #define EC_TIMEOUTMON 500
 
 programState progState;
@@ -41,6 +43,22 @@ char hstr[1024];
 {   \
     ec_readstate();\
     printf("EC> \"%s\" %x - %x [%s] \n", (char*)ec_elist2string(), ec_slave[slaveId].state, ec_slave[slaveId].ALstatuscode, (char*)ec_ALstatuscode2string(ec_slave[slaveId].ALstatuscode));    \
+}
+
+
+// **************************************************************************************************************************//
+
+
+// function to get the current tiem in seconds
+double get_time() {
+
+    // get the current wall clock time
+    auto current_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(current_time.time_since_epoch());
+    double t = duration.count() / 1'000'000.0;
+
+    // return the current time
+    return t;
 }
 
 
@@ -238,93 +256,106 @@ void *ELMOcommunication(void *data) {
                 //----------------------------------------- Main Loop ------------------------------------------//
 
                 // // do this loop to check if ready to for operation
-                // while(1) {
-                //     /** PDO I/O refresh */
-                //     ec_send_processdata();
-                //     wkc = ec_receive_processdata(EC_TIMEOUTRET);
-                //     std::cout << "------------------------------------------\n" << std::endl;
+                // double t0 = get_time();
+                // bool send_control_word = false;
+                // int16_t ctrlWord_stored = 0;
+                while(1) {
+                
+                    /** PDO I/O refresh */
+                    ec_send_processdata();
+                    wkc = ec_receive_processdata(EC_TIMEOUTRET);
 
-                //     if(wkc >= expectedWKC) {
+                    if(wkc >= expectedWKC) {
                         
-                //         int idx =0;
+                        // for (int j = 0; j < ec_slavecount; j++)  {
+                        for (int j = 0; j < 2; j++)  {
 
-                //         // Do it for the first elmo slave
-                //         uint16_t ctrlWord_tmp = 0;
-                //         // target[idx]->controlword = 0; // Enable voltage, quick stop
-                //         uint16 statusWord = val[idx]->status;
-                //         std::cout << "Status: " << statusWord << std::endl;
+                            int idx = j;
+                            // int idx = 1;
 
-                //         if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
-                //             // NOT READY
-                //             std::cout << "Drive NOT ready \n" << std::endl;
-                //             usleep(2000);
-                //         } 
-                //         else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
-                //             // SDO
-                //             std::cout << "Drive is in SDO \n" << std::endl;
-                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
-                //             // target[0]->controlword = 6; 
-                //             // target[idx]->controlword = ctrlWord_tmp; 
-                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
-                //             usleep(2000);
-                //         }
-                //         else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                //             // RSO
-                //             std::cout << "Drive is in RSO \n" << std::endl;
-                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                //             // target[0]->controlword = 7;
-                //             // target[idx]->controlword = ctrlWord_tmp; 
-                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
-                //             usleep(2000);
-                //         }
-                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                //             // SO
-                //             std::cout << "Drive in SO \n" << std::endl;
-                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
-                //             // target[0]->controlword = 15;
-                //             // target[idx]->controlword = ctrlWord_tmp;
-                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
-                //             usleep(2000);
-                //         }
-                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                //             // ARMED
-                //             std::cout << "Drive ARMED \n" << std::endl;
-                //             ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                //             ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
-                //             // target[0]->controlword = 15;
-                //             // target[idx]->controlword = ctrlWord_tmp;
-                //             std::cout << "Control word: " << target[idx]->controlword << std::endl;
-                //             usleep(2000);
-                //         }
-                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
-                //             // FAILED
-                //             std::cout << "Drive QUICK STOPPED \n" << std::endl;
-                //         }
-                //         else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
-                //             //FAILED
-                //             std::cout << "Drive FAILED: fault reaction active \n" << std::endl;
-                //         }
-                //         else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
-                //             // FAILED
-                //             std::cout << "Drive FAILED: fault" << std::endl;
-                //         }
-                //         else{
-                //             // unknown state
-                //             std::cout << "Drive FAILED: unknown state" << std::endl;
-                //         }
+                            for (int k = 0; k < 6; k++) {
+                                
+                            // Do it for the first elmo slave
+                            uint16_t ctrlWord_tmp = 0;
+                            // target[idx]->controlword = 0; // Enable voltage, quick stop
+                            uint16 statusWord = val[idx]->status;
+                            std::cout << "Status: " << statusWord << std::endl;
 
-                //         target[idx]->controlword = ctrlWord_tmp;
-                //     }
-                //     usleep(500);
-                // }
+                            if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
+                                // NOT READY
+                                std::cout << "Drive NOT ready \n" << std::endl;
+                                usleep(2000);
+                            } 
+                            else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
+                                // SDO
+                                std::cout << "Drive is in SDO \n" << std::endl;
+                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
+                                // target[0]->controlword = 6; 
+                                target[idx]->controlword = ctrlWord_tmp; 
+                                std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                                usleep(2000);
+                            }
+                            else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                // RSO
+                                std::cout << "Drive is in RSO \n" << std::endl;
+                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                // target[0]->controlword = 7;
+                                target[idx]->controlword = ctrlWord_tmp; 
+                                std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                                usleep(2000);
+                            }
+                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                // SO
+                                std::cout << "Drive in SO \n" << std::endl;
+                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
+                                // target[0]->controlword = 15;
+                                target[idx]->controlword = ctrlWord_tmp;
+                                std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                                usleep(2000);
+                            }
+                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                // ARMED
+                                std::cout << "Drive ARMED" << idx << "\n" << std::endl;
+                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
+                                // target[0]->controlword = 15;
+                                target[idx]->controlword = ctrlWord_tmp;
+                                std::cout << "Control word: " << target[idx]->controlword << std::endl;
+                                usleep(2000);
+                            }
+                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
+                                // FAILED
+                                std::cout << "Drive QUICK STOPPED \n" << std::endl;
+                            }
+                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                                //FAILED
+                                std::cout << "Drive FAILED: fault reaction active \n" << std::endl;
+                            }
+                            else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                                // FAILED
+                                std::cout << "Drive FAILED: fault" << std::endl;
+                            }
+                            else{
+                                // unknown state
+                                std::cout << "Drive FAILED: unknown state" << std::endl;
+                            }
+
+                            target[idx]->controlword = ctrlWord_tmp;
+                            
+                        }
+                        
+                        }
+                    }
+                    usleep(2000);
+                }
 
                 // Ready
                 data_pointer->commStatus = 1;
@@ -332,24 +363,42 @@ void *ELMOcommunication(void *data) {
                 {
                     /** PDO I/O refresh */
                     ec_send_processdata();
+                    usleep(10);
                     wkc = ec_receive_processdata(EC_TIMEOUTRET);
+                    usleep(10);
 
                     if(wkc >= expectedWKC) {
                         for (int j =0; j < ec_slavecount; j++) {
-                          switch(target[j]->controlword){
+                          switch(target[j]->controlword){ // TODO: try changin to status word
                             
                             /** if in fault or on the way to normal status, we update the state machine */
                             case 0:
                                 target[j]->controlword = 6; // Enable voltage, quick stop
+                                std::cout << j << std::endl;
+                                std::cout << "enable voltage" <<std::endl;
+                                std::cout << "status: " << val[j]->status << std::endl;
+                                usleep(10);
+                                
                                 break;
                             case 6:
+                            std::cout << j << std::endl;
                                 target[j]->controlword = 7; // switch on
+                                std::cout << "switch on" << std::endl;
+                                std::cout << "status: " << val[j]->status << std::endl;
+                                usleep(20);
                                 break;
                             case 7:
+                            std::cout << j << std::endl;
                                 target[j]->controlword = 15; // enable operation
+                                std::cout << "enable op" << std::endl;
+                                std::cout << "status: " << val[j]->status << std::endl;
+                                usleep(20);
                                 break;
                             case 128:
+                            std::cout << j << std::endl;
                                 target[j]->controlword = 0; // reset
+                                std::cout << "reset" << std::endl;
+                                std::cout << "status: " << val[j]->status << std::endl;
                                 break;
                             default:
                                 if(val[j]->status >> 3 & 0x01) {
@@ -376,10 +425,11 @@ void *ELMOcommunication(void *data) {
                           // if in ready-to-run mode and intial value reached, then apply the torque
                           if((val[j]->status & 0x0fff) == 0x0237 && reachedInitial[j]){
                             // target[j]->torque = (int16) data_pointer->torque[j];
-                            target[j]->torque = (int16) 0; // DEBUGGING
+                            // target[j]->torque = (int16) 0; // DEBUGGING
                             // target[j]->position = (int16) 0; // DEBUGGING
                           }
-                            //   target[3]->torque = (int16) data_pointer->torque[3];
+                        //   target[3]->position = (int32) 0; // DEBUGGING
+                            target[3]->torque = (int16) 0; //(int16) data_pointer->torque[3];
                             //   std::cout << data_pointer->torque[3] << std::endl;
                         }
 

@@ -95,13 +95,6 @@ JointVec ELMOInterface::getEncoderData() {
             vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
             vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
             vel[5] * KNEE_CONVERSION; // (KR) Knee Right
-    // tmp <<  pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
-    //         pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
-    //         pos[3] * KNEE_CONVERSION, // (KL) Knee Left
-    //         pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
-    //         pos[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
-    //         pos[5] * KNEE_CONVERSION, // (KR) Knee Right
-    //         0,0,0,0,0,0;
 
     return tmp;
 }
@@ -149,8 +142,8 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
     for (int i = 0; i < 6; i++) {
 
         if (abs(joint_data(i)) > 0.35) {
-            tau.setZero();
-            std::cout << "Joint " << i << " is out of bounds! Setting all torques to zero." << std::endl;
+            // tau.setZero();
+            // std::cout << "Joint " << i << " is out of bounds! Setting all torques to zero." << std::endl;
         }
     }
 

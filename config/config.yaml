@@ -1,9 +1,9 @@
 ############################################################################
 
 # my computer ethernet port (check this via 'ifconfig')
-# ethernet: "enx00e04c68005e"    # dock
+ethernet: "enx00e04c68005e"    # dock
 # ethernet: "enx207bd29d4768"  # ethernet adapter
-ethernet: "enx9cebe83faea0" #amber
+# ethernet: "enx9cebe83faea0" #amber
 
 ############################################################################
 

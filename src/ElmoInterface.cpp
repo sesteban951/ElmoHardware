@@ -52,19 +52,33 @@ void ELMOInterface::setGains(JointGains gains) {
 ELMOStatus ELMOInterface::getELMOStatus() {
 
     // declare variables for the incoming data
+    uint16 joint_input[6];
+    uint16 joint_control[6];
     uint16 joint_status[6];
-    ELMOStatus tmp(6);
+    ELMOStatus tmp;
 
     // copy the incoming data to the declared variables
-    memcpy(joint_status, this->data->status, sizeof(joint_status));
+    memcpy(joint_status, this->data->statusword, sizeof(joint_status));
 
     // poulate the Eigen vector with reordered data
-    tmp <<  joint_status[0],  // (HFL) Hip Frontal Left
-            joint_status[1],  // (HSL) Hip Sagittal Left
-            joint_status[3],  // (KL) Knee Left
-            joint_status[4],  // (HFR) Hip Frontal Right
-            joint_status[2],  // (HSR) Hip Sagittal Right
-            joint_status[5];  // (KR) Knee Right
+    tmp << joint_input[0],   // (HFL) Hip Frontal Left
+           joint_input[1],   // (HSL) Hip Sagittal Left
+           joint_input[3],   // (KL) Knee Left
+           joint_input[4],   // (HFR) Hip Frontal Right
+           joint_input[2],   // (HSR) Hip Sagittal Right
+           joint_input[5],   // (KR) Knee Right
+           joint_control[0], // (HFL) Hip Frontal Left
+           joint_control[1], // (HSL) Hip Sagittal Left
+           joint_control[3], // (KL) Knee Left
+           joint_control[4], // (HFR) Hip Frontal Right
+           joint_control[2], // (HSR) Hip Sagittal Right
+           joint_control[5], // (KR) Knee Right
+           joint_status[0],  // (HFL) Hip Frontal Left
+           joint_status[1],  // (HSL) Hip Sagittal Left
+           joint_status[3],  // (KL) Knee Left
+           joint_status[4],  // (HFR) Hip Frontal Right
+           joint_status[2],  // (HSR) Hip Sagittal Right
+           joint_status[5];  // (KR) Knee Right
 
     return tmp;
 }
@@ -146,6 +160,8 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
             // std::cout << "Joint " << i << " is out of bounds! Setting all torques to zero." << std::endl;
         }
     }
+
+    tau.setZero();
 
     return tau;
 }

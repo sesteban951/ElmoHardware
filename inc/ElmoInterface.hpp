@@ -56,7 +56,7 @@ struct JointGains {
 // variable for joint data
 typedef Eigen::Matrix< double, 12, 1> JointVec;    // vector for joint state
 typedef Eigen::Matrix< double, 6, 1> JointTorque;  // vector for feedforward torque
-typedef Eigen::Matrix< double, 6, 1> ELMOStatus;   // status of each motor controller
+typedef Eigen::Matrix< double, 18, 1> ELMOStatus;   // status of each motor controller
 
 //  A class that enables communication between the computer and motor controllers
 class ELMOInterface {

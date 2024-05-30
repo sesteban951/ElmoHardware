@@ -91,7 +91,7 @@ int main() {
         double time = duration.count() / 1'000'000.0; // convert to seconds
 
         // get the currebt ELMO status
-        ELMOStatus status = elmo.getELMOStatus();
+        ELMOStatus diagnostics = elmo.getELMOStatus();
 
         // get the current encoder data
         JointVec data = elmo.getEncoderData();
@@ -106,16 +106,29 @@ int main() {
 
         // compute the net torque command
         JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
+
+        // DEBUG
+        tau.setZero();
+        tau(2) = 160;
+
         elmo.sendTorque(tau);
 
-        // log the encoder data
-        file_data << time << ", "
-                  << data(0) << ", " << data(1) << ", " << data(2) << ", " << data(3) << ", " << data(4) << ", " << data(5) << ", " 
-                  << data(6) << ", " << data(7) << ", " << data(8) << ", " << data(9) << ", " << data(10) << ", " << data(11) << ", "
-                  << tau(0) << ", " << tau(1) << ", " << tau(2) << ", " << tau(3) << ", " << tau(4) << ", " << tau(5) << std::endl;
+        // log the encoder and torque sent data
+        file_data << time;
+        for (int i = 0; i < data.size(); i++) {
+            file_data << ", " << data(i);
+        }
+        for (int i = 0; i < tau.size(); i++) {
+            file_data << ", " << tau(i);
+        }
+        file_data << std::endl;
 
-        file_diagnostics << time << ", "
-                         << status(0) << ", " << status(1) << ", " << status(2) << ", " << status(3) << ", " << status(4) << ", " << status(5) << std::endl;
+        // log the diagnostics data
+        file_diagnostics << time;
+        for (int i = 0; i < diagnostics.size(); i++) {
+            file_diagnostics << ", " << diagnostics(i);
+        }
+        file_diagnostics << std::endl;
 
         std::this_thread::sleep_for(std::chrono::microseconds(500)); // Sleep for micro seconds
     }

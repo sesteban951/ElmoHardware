@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <math.h>
+#include <bitset>
+#include <chrono>
 
 // Ethercat headers
 #include <ethercat.h>
@@ -34,12 +36,13 @@
 // struct for general ELMO data
 struct ELMOData{
   char port[1028];
-  int commStatus;
+  int commStatus;   // communication status
   int16 torque[6];  // desried torque commands
   int32 pos[6];     // encoder joint position from ELMO
   int32 vel[6];     // encoder joint velocity from ELMO
-  uint32 inputs[6]; // encoder inputs
-  uint16 status[6]; // status of each motor
+  uint32 inputs[6]; // inputs
+  uint16 controlword[6]; // status wordof each motor
+  uint16 statusword[6]; // status wordof each motor
 };
 
 // struct to hold out-going data, Laptop --> ELMO
@@ -49,14 +52,6 @@ struct ELMOOut {
    uint16_t controlword; // "Control Word", converted to binary and use DS402 SM, 6040
 };
 
-// struct to hold out-going data, Laptop --> ELMO
-// Position Control (x1600)
-// struct ELMOOut {
-//      int32 position;      // "Position Command"
-//      uint32 inputs;       // "Digital Inputs"
-//      uint16 controlword;  // "Control Word", converted to binary and use DS402 SM, 6040
-// };
-
 // struct to hold in-coming data, ELMO --> Laptop
 // Pos and Vel (0x1A03)
 struct ELMOIn {
@@ -65,14 +60,6 @@ struct ELMOIn {
     int32_t velocity;  // "Velocity Actual Value"
     uint16_t status;   // "Status Word", converted to binary and use DS402 SM, 6041
 };
-
-// struct to hold in-coming data, ELMO --> Laptop
-// Pos (0x1A00)
-// struct ELMOIn {
-//     int32 position;  // "Position Actual Value"
-//     uint32 inputs;   // "Digital Inputs"
-//     uint16 status;   // "Status Word", converted to binary and use DS402 SM, 6041
-// };
 
 // struct for program state
 enum programState {Initializing, 

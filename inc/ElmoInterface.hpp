@@ -7,15 +7,6 @@
 // standard headers
 #include <Eigen/Dense>
 
-/* ELMO order of joints (physical default order)
-  1. HFL  (Hip Frontal Left)
-  2. HSL  (Hip Sagittal Left)
-  3. HSR  (Hip Sagittal Right)
-  4. KL   (Knee Left)
-  5. HFR  (Hip Frontal Right)
-  6. KR   (Knee Right)
-*/ 
-
 // converison factors for reading the encoder data
 #define CPR 8192.0    // counts per revolution of the encoder (RLS RMB20)
 #define HIP_GR 30.0   // gear ratio for the hip actuators
@@ -63,12 +54,13 @@ class ELMOInterface {
     
     public:
 
-        // use default constructor / desctructors
+        // constructor / desctructors
         ELMOInterface() {};
         ~ELMOInterface() {};
 
-        // function to initialize ELMO
+        // function to initialize/shutdown ELMO
         void initELMO(char* port, pthread_t thread1, pthread_t thread2);
+        void shutdownELMO();
 
         // function to set the low levcel control gains
         void setGains(JointGains gains);

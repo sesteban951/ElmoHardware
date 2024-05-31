@@ -3,11 +3,23 @@
 #include <thread>
 #include <chrono>
 
+/* ELMO order of joints (physical daisy chain order)
+  1. HFL  (Hip Frontal Left)
+  2. HSL  (Hip Sagittal Left)
+  3. HSR  (Hip Sagittal Right)
+  4. KL   (Knee Left)
+  5. HFR  (Hip Frontal Right)
+  6. KR   (Knee Right)
+*/ 
+
 // function to intialize the ELMO motor controllers
 void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
 
     // Initialize the ELMO data struct
     this->data = (struct ELMOData *)malloc(sizeof(struct ELMOData));
+
+    // flip the motor switch to be on
+    this->data->motor_control_switch = true;
 
     // Inital values to populate the ELMO data struct
     int32 pos0[6] = {0,0,0,0,0,0};
@@ -15,10 +27,10 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
     int32 torque0[6] = {0,0,0,0,0,0};
 
     // Populate the ELMO data struct with the intial values
-    memcpy(this->data->pos, pos0, sizeof(pos0));        // set the position to zero
-    memcpy(this->data->pos, vel0, sizeof(vel0));        // set the velocity to zero
-    memcpy(this->data->pos, torque0, sizeof(torque0));  // set the torque to zero
-    strcpy(this->data->port, port);                     // attach the ethernet port
+    memcpy(this->data->pos, pos0, sizeof(pos0));          // set the position to zero
+    memcpy(this->data->vel, vel0, sizeof(vel0));          // set the velocity to zero
+    memcpy(this->data->torque, torque0, sizeof(torque0)); // set the torque to zero
+    strcpy(this->data->port, port);                       // attach the ethernet port
 
     printf("SOEM (Simple Open EtherCAT Master)\nSetting Up ELMO drivers...\n");
     
@@ -30,15 +42,22 @@ void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
 
     // Wait for communication to be set up
     while(this->data->commStatus != 1) {
-    switch (this->data->commStatus) {
-        case -1: // If comm setup fails,
-        std::cout << "Communication setup failed. Exiting..." << std::endl;
-        exit(2);
-    }
+        switch (this->data->commStatus) {
+            case -1: // If comm setup fails,
+            std::cout << "Communication setup failed. Exiting..." << std::endl;
+            exit(2);
+        }
     };
 
     printf("Ready.\n");
     usleep(3000);
+}
+
+// function to that flips the motor control switch to off
+void ELMOInterface::shutdownELMO() {
+
+    // turn the desired motor switch to be off
+    this->data->motor_control_switch = false;
 }
 
 // function to set the low level control gains
@@ -151,17 +170,15 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
     // return the torque vector
     tau << tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
 
-    // DEBUGING
-    // if any joint deviates 20 degrees from zero, set all torques to zero
+    /* "SAFETY FILTER" (DEBUGGING)
+    if any joint deviates 20 degrees from zero, set that joint torque to 0. */
     for (int i = 0; i < 6; i++) {
 
         if (abs(joint_data(i)) > 0.35) {
-            // tau.setZero();
-            // std::cout << "Joint " << i << " is out of bounds! Setting all torques to zero." << std::endl;
+            std::cout << "Joint " << i << " is out of bounds! Setting torque to zero." << std::endl;
+            tau(i) = 0.0;
         }
     }
-
-    tau.setZero();
 
     return tau;
 }

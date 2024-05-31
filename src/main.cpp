@@ -18,6 +18,28 @@
 // char array to hold the ethernet port name
 char port[1028];
 
+// sine wave siganal
+double sin_wave(double t, double A, double f) {
+
+    double w, x;
+    w = 2 * M_PI * f;
+
+    x = A * sin(w * t);
+
+    return x;
+}
+
+// derivative of sine wave dt
+double sin_wave_dt(double t, double A, double f) {
+
+    double w, x;
+    w = 2 * M_PI * f;
+
+    x = A * w * cos(w * t);
+
+    return x;
+}
+
 // main ELMO control loop
 int main() {
 
@@ -79,16 +101,24 @@ int main() {
 
     // initialize the intial time
     auto start = std::chrono::high_resolution_clock::now();
+    double time = 0.0;
+
+    double sine_sig, sine_sig_dt;
+    double A_ff, f_ff, A_ref, f_ref;
+    A_ref = 1.0;
+    f_ref = 0.5;
+    A_ff = 130.0;
+    f_ff = 0.5;
 
     // get encoder data
-    for (;;){
+    while (time <= 10.0) {
 
         // std::cout << "\n-----------------------------------------\n" << std::endl;
 
         // get the current time in seconds
         auto now = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start);
-        double time = duration.count() / 1'000'000.0; // convert to seconds
+        time = duration.count() / 1'000'000.0; // convert to seconds
 
         // get the currebt ELMO status
         ELMOStatus diagnostics = elmo.getELMOStatus();
@@ -97,19 +127,24 @@ int main() {
         JointVec data = elmo.getEncoderData();
 
         // specify some joint reference
+        sine_sig = sin_wave(time, A_ref, f_ref);
+        sine_sig_dt = sin_wave_dt(time, A_ff, f_ff);
         JointVec joint_ref;
         joint_ref.setZero();
+        // joint_ref(2) = sine_sig;
+        // joint_ref(8) = sine_sig_dt;
 
         // specify some feedforward torque
         JointTorque tau_ff;
         tau_ff.setZero();
+        // tau_ff(2) = 140;
 
         // compute the net torque command
         JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
 
         // DEBUG
         tau.setZero();
-        tau(2) = 160;
+        // tau(2) = 140;
 
         elmo.sendTorque(tau);
 
@@ -132,6 +167,9 @@ int main() {
 
         std::this_thread::sleep_for(std::chrono::microseconds(500)); // Sleep for micro seconds
     }
+
+    // shutdown the ELMOs gracefully
+    elmo.shutdownELMO();
 
     //***************************************************************
 

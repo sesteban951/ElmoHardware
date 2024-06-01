@@ -18,7 +18,7 @@
 // char array to hold the ethernet port name
 char port[1028];
 
-// sine wave siganal
+// sine wave siganl
 double sin_wave(double t, double A, double f) {
 
     double w, x;
@@ -29,15 +29,15 @@ double sin_wave(double t, double A, double f) {
     return x;
 }
 
-// derivative of sine wave dt
+// derivative of sine wave 
 double sin_wave_dt(double t, double A, double f) {
 
-    double w, x;
+    double w, dx;
     w = 2 * M_PI * f;
 
-    x = A * w * cos(w * t);
+    dx = A * w * cos(w * t);
 
-    return x;
+    return dx;
 }
 
 // main ELMO control loop
@@ -55,28 +55,66 @@ int main() {
     // setup ethercat
     eth_port.copy(port, sizeof(port));
 
+    // max program time
+    double max_time = config["max_prog_time"].as<double>();
+
     // set up the joint gains
     JointGains gains;
-    gains.Kp_HFL = config["gains"]["Kp_HFL"].as<double>();
-    gains.Kp_HSL = config["gains"]["Kp_HSL"].as<double>();
-    gains.Kp_KL = config["gains"]["Kp_KL"].as<double>();
-    gains.Kp_HFR = config["gains"]["Kp_HFR"].as<double>();
-    gains.Kp_HSR = config["gains"]["Kp_HSR"].as<double>();
-    gains.Kp_KR = config["gains"]["Kp_KR"].as<double>();
+    gains.Kp_HFL = config["gains"]["HFL"]["Kp"].as<double>();  // Hip Frontal Left (HFL)
+    gains.Kd_HFL = config["gains"]["HFL"]["Kd"].as<double>();
+    gains.Kff_HFL = config["gains"]["HFL"]["Kff"].as<double>();
+    
+    gains.Kp_HSL = config["gains"]["HSL"]["Kp"].as<double>();  // Hip Sagittal Left (HSL)
+    gains.Kd_HSL = config["gains"]["HSL"]["Kd"].as<double>();
+    gains.Kff_HSL = config["gains"]["HSL"]["Kff"].as<double>();
+    
+    gains.Kp_KL = config["gains"]["KL"]["Kp"].as<double>();    // Knee Left (KL)
+    gains.Kd_KL = config["gains"]["KL"]["Kd"].as<double>();
+    gains.Kff_KL = config["gains"]["KL"]["Kff"].as<double>();
+    
+    gains.Kp_HFR = config["gains"]["HFR"]["Kp"].as<double>();  // Hip Frontal Right (HFR)
+    gains.Kd_HFR = config["gains"]["HFR"]["Kd"].as<double>();
+    gains.Kff_HFR = config["gains"]["HFR"]["Kff"].as<double>();
+    
+    gains.Kp_HSR = config["gains"]["HSR"]["Kp"].as<double>();  // Hip Sagittal Right (HSR)
+    gains.Kd_HSR = config["gains"]["HSR"]["Kd"].as<double>();
+    gains.Kff_HSR = config["gains"]["HSR"]["Kff"].as<double>();
+    
+    gains.Kp_KR = config["gains"]["KR"]["Kp"].as<double>();    // Knee Right (KR)
+    gains.Kd_KR = config["gains"]["KR"]["Kd"].as<double>();
+    gains.Kff_KR = config["gains"]["KR"]["Kff"].as<double>();
 
-    gains.Kd_HFL = config["gains"]["Kd_HFL"].as<double>();
-    gains.Kd_HSL = config["gains"]["Kd_HSL"].as<double>();
-    gains.Kd_KL = config["gains"]["Kd_KL"].as<double>();
-    gains.Kd_HFR = config["gains"]["Kd_HFR"].as<double>();
-    gains.Kd_HSR = config["gains"]["Kd_HSR"].as<double>();
-    gains.Kd_KR = config["gains"]["Kd_KR"].as<double>();
+    // set up joint limits
+    JointLimits limits;
+    limits.q_min_HFL = config["limits"]["HFL"]["q_min"].as<double>(); // Hip Frontal Left (HFL)
+    limits.q_max_HFL = config["limits"]["HFL"]["q_max"].as<double>(); 
+    limits.qd_min_HFL = config["limits"]["HFL"]["qd_min"].as<double>();
+    limits.qd_max_HFL = config["limits"]["HFL"]["qd_max"].as<double>();
 
-    gains.Kff_HFL = config["gains"]["Kff_HFL"].as<double>();
-    gains.Kff_HSL = config["gains"]["Kff_HSL"].as<double>();
-    gains.Kff_KL = config["gains"]["Kff_KL"].as<double>();
-    gains.Kff_HFR = config["gains"]["Kff_HFR"].as<double>();
-    gains.Kff_HSR = config["gains"]["Kff_HSR"].as<double>();
-    gains.Kff_KR = config["gains"]["Kff_KR"].as<double>();
+    limits.q_min_HSL = config["limits"]["HSL"]["q_min"].as<double>(); // Hip Sagittal Left (HSL)
+    limits.q_max_HSL = config["limits"]["HSL"]["q_max"].as<double>();
+    limits.qd_min_HSL = config["limits"]["HSL"]["qd_min"].as<double>();
+    limits.qd_max_HSL = config["limits"]["HSL"]["qd_max"].as<double>();
+
+    limits.q_min_KL = config["limits"]["KL"]["q_min"].as<double>();   // Knee Left (KL)
+    limits.q_max_KL = config["limits"]["KL"]["q_max"].as<double>();
+    limits.qd_min_KL = config["limits"]["KL"]["qd_min"].as<double>();
+    limits.qd_max_KL = config["limits"]["KL"]["qd_max"].as<double>();
+
+    limits.q_min_HFR = config["limits"]["HFR"]["q_min"].as<double>();  // Hip Frontal Right (HFR)
+    limits.q_max_HFR = config["limits"]["HFR"]["q_max"].as<double>();
+    limits.qd_min_HFR = config["limits"]["HFR"]["qd_min"].as<double>();
+    limits.qd_max_HFR = config["limits"]["HFR"]["qd_max"].as<double>();
+
+    limits.q_min_HSR = config["limits"]["HSR"]["q_min"].as<double>();  // Hip Sagittal Right (HSR)
+    limits.q_max_HSR = config["limits"]["HSR"]["q_max"].as<double>();
+    limits.qd_min_HSR = config["limits"]["HSR"]["qd_min"].as<double>();
+    limits.qd_max_HSR = config["limits"]["HSR"]["qd_max"].as<double>();
+
+    limits.q_min_KR = config["limits"]["KR"]["q_min"].as<double>();    // Knee Right (KR)
+    limits.q_max_KR = config["limits"]["KR"]["q_max"].as<double>();
+    limits.qd_min_KR = config["limits"]["KR"]["qd_min"].as<double>();
+    limits.qd_max_KR = config["limits"]["KR"]["qd_max"].as<double>();
 
     // for logging purposes
     std::string log_file_data = "../data/data.csv";
@@ -92,8 +130,9 @@ int main() {
     // initialize ELMO interface
     ELMOInterface elmo;
 
-    // set the joint gains
+    // set the joint gains and limits
     elmo.setGains(gains);
+    elmo.setLimits(limits);
 
     // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
@@ -103,7 +142,7 @@ int main() {
     auto start = std::chrono::high_resolution_clock::now();
     double time = 0.0;
 
-    double sine_sig, sine_sig_dt;
+    double sine_sig, sine_sig_dt, sin_tau;
     double A_ff, f_ff, A_ref, f_ref;
     A_ref = 1.0;
     f_ref = 0.5;
@@ -111,7 +150,7 @@ int main() {
     f_ff = 0.5;
 
     // get encoder data
-    while (time <= 10.0) {
+    while (time <= max_time) {
 
         // std::cout << "\n-----------------------------------------\n" << std::endl;
 
@@ -135,16 +174,16 @@ int main() {
         // joint_ref(8) = sine_sig_dt;
 
         // specify some feedforward torque
+        sin_tau = sin_wave(time, A_ff, f_ff);
         JointTorque tau_ff;
         tau_ff.setZero();
-        // tau_ff(2) = 140;
 
         // compute the net torque command
         JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
 
         // DEBUG
         tau.setZero();
-        // tau(2) = 140;
+        tau(2) = 140;
 
         elmo.sendTorque(tau);
 

@@ -1,4 +1,6 @@
 ############################################################################
+# ETHERNET CONFIGURATION
+############################################################################
 
 # my computer ethernet port (check this via 'ifconfig')
 ethernet: "enx00e04c68005e"    # desktop dock
@@ -6,32 +8,101 @@ ethernet: "enx00e04c68005e"    # desktop dock
 # ethernet: "enx9cebe83faea0" # amber ethernet adapter
 
 ############################################################################
+# PROGRAM TIME
+############################################################################
+
+# max testing time [sec]
+max_prog_time: 30.0
+
+############################################################################
+# JOINT GAINS
+############################################################################
 
 # Low Level Joint controller gains
 gains:
 
-  Kp_HFL: 0.0   # Hip Frontal Left (HFL)
-  Kp_HSL: 0.0   # Hip Sagittal Left (HSL)
-  Kp_KL:  0.0   # Knee Left (KL)
-  Kp_HFR: 0.0   # Hip Frontal Right (HFR)
-  Kp_HSR: 0.0   # Hip Sagittal Right (HSR)
-  Kp_KR:  0.0   # Knee Right (KR)
+  # Hip Frontal Left (HFL)
+  HFL:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
 
-  Kd_HFL: 0.0   # Hip Frontal Left (HFL)
-  Kd_HSL: 0.0   # Hip Sagittal Left (HSL)
-  Kd_KL:  0.0   # Knee Left (KL)
-  Kd_HFR: 0.0   # Hip Frontal Right (HFR)
-  Kd_HSR: 0.0   # Hip Sagittal Right (HSR)
-  Kd_KR:  0.0   # Knee Right (KR)
+  # Hip Sagittal Left (HSL)
+  HSL:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
 
-  Kff_HFL: 0.0   # Hip Frontal Left (HFL)
-  Kff_HSL: 0.0   # Hip Sagittal Left (HSL)
-  Kff_KL:  0.0   # Knee Left (KL)
-  Kff_HFR: 0.0   # Hip Frontal Right (HFR)
-  Kff_HSR: 0.0   # Hip Sagittal Right (HSR)
-  Kff_KR:  0.0   # Knee Right (KR)
+  # Knee Left (KL)
+  KL:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
+
+  # Hip Frontal Right (HFR)
+  HFR:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
+
+  # Hip Sagittal Right (HSR)
+  HSR:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
+
+  # Knee Right (KR)
+  KR:
+    Kp: 0.0
+    Kd: 0.0
+    Kff: 0.0
 
 ############################################################################
+# JOINT LIMITS
+############################################################################
 
+# configuration limits [rad], velocity limits [rad/s]
+limits:
 
+  # Hip Frontal Left (HFL)
+  HFL:
+    q_min: -0.1
+    q_max: 0.1
+    qd_min: -1.0
+    qd_max: 1.0
+
+  # Hip Sagittal Left (HSL)
+  HSL:
+    q_min: -0.1
+    q_max: 0.1
+    qd_min: -1.0
+    qd_max: 1.0
+
+  # Knee Left (KL)
+  KL:
+    q_min: -5.0
+    q_max: 5.0
+    qd_min: -1.0
+    qd_max: 1.0
+
+  # Hip Frontal Right (HFR)
+  HFR:
+    q_min: -0.1
+    q_max: 0.1
+    qd_min: -1.0
+    qd_max: 1.0
+
+  # Hip Sagittal Right (HSR)
+  HSR:
+    q_min: -0.1
+    q_max: 0.1
+    qd_min: -1.0
+    qd_max: 1.0
+
+  # Knee Right (KR)
+  KR:
+    q_min: -0.1
+    q_max: 0.1
+    qd_min: -1.0
+    qd_max: 1.0
 

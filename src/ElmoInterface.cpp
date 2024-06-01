@@ -1,8 +1,5 @@
 #include "../inc/ElmoInterface.hpp"
 
-#include <thread>
-#include <chrono>
-
 /* ELMO order of joints (physical daisy chain order)
   1. HFL  (Hip Frontal Left)
   2. HSL  (Hip Sagittal Left)
@@ -67,6 +64,13 @@ void ELMOInterface::setGains(JointGains gains) {
     this->gains = gains;
 }
 
+// function to set the joint limits
+void ELMOInterface::setLimits(JointLimits limits) {
+
+    // set the limits
+    this->limits = limits;
+}
+
 // function to get the ELMO status (reordered)
 ELMOStatus ELMOInterface::getELMOStatus() {
 
@@ -77,6 +81,8 @@ ELMOStatus ELMOInterface::getELMOStatus() {
     ELMOStatus tmp;
 
     // copy the incoming data to the declared variables
+    memcpy(joint_input, this->data->inputs, sizeof(joint_input));
+    memcpy(joint_control, this->data->controlword, sizeof(joint_control));
     memcpy(joint_status, this->data->statusword, sizeof(joint_status));
 
     // poulate the Eigen vector with reordered data
@@ -102,7 +108,7 @@ ELMOStatus ELMOInterface::getELMOStatus() {
     return tmp;
 }
 
-// function to get the raw encoder data from ELMO (reordered)
+// function to get the raw encoder data from ELMO
 JointVec ELMOInterface::getEncoderData() {
 
     // declare variables for the incoming data
@@ -114,7 +120,7 @@ JointVec ELMOInterface::getEncoderData() {
     memcpy(pos, this->data->pos, sizeof(pos));
     memcpy(vel, this->data->vel, sizeof(vel));
 
-    // poulate the Eigen vector with reordered data
+    // populate the Eigen vector with reordered data
     tmp.setZero();
     tmp <<  pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
             pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
@@ -132,7 +138,7 @@ JointVec ELMOInterface::getEncoderData() {
     return tmp;
 }
 
-// function to compute the torque command (ordered the right way)
+// function to compute the torque command
 JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff) {
 
     // get the current joint state
@@ -142,6 +148,58 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
     JointTorque tau;
     double tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
 
+    // saturate the reference joint angles
+    if (joint_ref(0) < this->limits.q_min_HFL || joint_ref(0) > this->limits.q_max_HFL) {
+        std::cout << "[WARNING] Joint HFL reference is out of bounds! Saturating." << std::endl;
+        joint_ref(0) = std::min(std::max(joint_ref(0), this->limits.q_min_HFL), this->limits.q_max_HFL);
+    }
+    if (joint_ref(1) < this->limits.q_min_HSL || joint_ref(1) > this->limits.q_max_HSL) {
+        std::cout << "[WARNING] Joint HSL reference is out of bounds! Saturating." << std::endl;
+        joint_ref(1) = std::min(std::max(joint_ref(1), this->limits.q_min_HSL), this->limits.q_max_HSL);
+    }
+    if (joint_ref(2) < this->limits.q_min_KL || joint_ref(2) > this->limits.q_max_KL) {
+        std::cout << "[WARNING] Joint KL reference is out of bounds! Saturating." << std::endl;
+        joint_ref(2) = std::min(std::max(joint_ref(2), this->limits.q_min_KL), this->limits.q_max_KL);
+    }
+    if (joint_ref(3) < this->limits.q_min_HFR || joint_ref(3) > this->limits.q_max_HFR) {
+        std::cout << "[WARNING] Joint HFR reference is out of bounds! Saturating." << std::endl;
+        joint_ref(3) = std::min(std::max(joint_ref(3), this->limits.q_min_HFR), this->limits.q_max_HFR);
+    }
+    if (joint_ref(4) < this->limits.q_min_HSR || joint_ref(4) > this->limits.q_max_HSR) {
+        std::cout << "[WARNING] Joint HSR reference is out of bounds! Saturating." << std::endl;
+        joint_ref(4) = std::min(std::max(joint_ref(4), this->limits.q_min_HSR), this->limits.q_max_HSR);
+    }
+    if (joint_ref(5) < this->limits.q_min_KR || joint_ref(5) > this->limits.q_max_KR) {
+        std::cout << "[WARNING] Joint KR reference is out of bounds! Saturating." << std::endl;
+        joint_ref(5) = std::min(std::max(joint_ref(5), this->limits.q_min_KR), this->limits.q_max_KR);
+    }
+
+    // saturate the reference joint velocities
+    if (joint_ref(6) < this->limits.qd_min_HFL || joint_ref(6) > this->limits.qd_max_HFL) {
+        std::cout << "[WARNING] Joint HFL reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(6) = std::min(std::max(joint_ref(6), this->limits.qd_min_HFL), this->limits.qd_max_HFL);
+    }
+    if (joint_ref(7) < this->limits.qd_min_HSL || joint_ref(7) > this->limits.qd_max_HSL) {
+        std::cout << "[WARNING] Joint HSL reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(7) = std::min(std::max(joint_ref(7), this->limits.qd_min_HSL), this->limits.qd_max_HSL);
+    }
+    if (joint_ref(8) < this->limits.qd_min_KL || joint_ref(8) > this->limits.qd_max_KL) {
+        std::cout << "[WARNING] Joint KL reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(8) = std::min(std::max(joint_ref(8), this->limits.qd_min_KL), this->limits.qd_max_KL);
+    }
+    if (joint_ref(9) < this->limits.qd_min_HFR || joint_ref(9) > this->limits.qd_max_HFR) {
+        std::cout << "[WARNING] Joint HFR reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(9) = std::min(std::max(joint_ref(9), this->limits.qd_min_HFR), this->limits.qd_max_HFR);
+    }
+    if (joint_ref(10) < this->limits.qd_min_HSR || joint_ref(10) > this->limits.qd_max_HSR) {
+        std::cout << "[WARNING] Joint HSR reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(10) = std::min(std::max(joint_ref(10), this->limits.qd_min_HSR), this->limits.qd_max_HSR);
+    }
+    if (joint_ref(11) < this->limits.qd_min_KR || joint_ref(11) > this->limits.qd_max_KR) {
+        std::cout << "[WARNING] Joint KR reference velocity is out of bounds! Saturating." << std::endl;
+        joint_ref(11) = std::min(std::max(joint_ref(11), this->limits.qd_min_KR), this->limits.qd_max_KR);
+    }
+    
     // compute the torque for each joint
     tau_HFL = this->gains.Kp_HFL * (joint_ref(0) - joint_data(0)) 
             + this->gains.Kd_HFL * (joint_ref(6) - joint_data(6)) 
@@ -151,7 +209,7 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
             + this->gains.Kd_HSL * (joint_ref(7) - joint_data(7))
             + this->gains.Kff_HSL * tau_ff(1);
 
-    tau_KL = this->gains.Kp_KL * (joint_ref(2) - joint_data(2))
+    tau_KL =  this->gains.Kp_KL * (joint_ref(2) - joint_data(2))
             + this->gains.Kd_KL * (joint_ref(8) - joint_data(8))
             + this->gains.Kff_KL * tau_ff(2);
 
@@ -163,22 +221,38 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
             + this->gains.Kd_HSR * (joint_ref(10) - joint_data(10))
             + this->gains.Kff_HSR * tau_ff(4);
 
-    tau_KR = this->gains.Kp_KR * (joint_ref(5) - joint_data(5))
+    tau_KR =  this->gains.Kp_KR * (joint_ref(5) - joint_data(5))
             + this->gains.Kd_KR * (joint_ref(11) - joint_data(11))
             + this->gains.Kff_KR * tau_ff(5); 
 
+    // check that we have not exceeded the joint limits 
+    if (joint_data(0) < this->limits.q_min_HFL || joint_data(0) > this->limits.q_max_HFL) {
+        std::cout << "[WARNING] Joint HFL is out of bounds! Setting torque to zero." << std::endl;
+        tau_HFL = 0.0;
+    }
+    if (joint_data(1) < this->limits.q_min_HSL || joint_data(1) > this->limits.q_max_HSL) {
+        std::cout << "[WARNING] Joint HFL is out of bounds! Setting torque to zero." << std::endl;
+        tau_HSL = 0.0;
+    }
+    // if (joint_data(2) < this->limits.q_min_KL || joint_data(2) > this->limits.q_max_KL) {
+    //     std::cout << "[WARNING] Joint KL is out of bounds! Setting torque to zero." << std::endl;
+    //     tau_KL = 0.0;
+    // }
+    if (joint_data(3) < this->limits.q_min_HFR || joint_data(3) > this->limits.q_max_HFR) {
+        std::cout << "[WARNING] Joint HFR is out of bounds! Setting torque to zero." << std::endl;
+        tau_HFR = 0.0;
+    }
+    if (joint_data(4) < this->limits.q_min_HSR || joint_data(4) > this->limits.q_max_HSR) {
+        std::cout << "[WARNING] Joint HSR is out of bounds! Setting torque to zero." << std::endl;
+        tau_HSR = 0.0;
+    }
+    if (joint_data(5) < this->limits.q_min_KR || joint_data(5) > this->limits.q_max_KR) {
+        std::cout << "[WARNING] Joint KR is out of bounds! Setting torque to zero." << std::endl;
+        tau_KR = 0.0;
+    }
+
     // return the torque vector
     tau << tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
-
-    /* "SAFETY FILTER" (DEBUGGING)
-    if any joint deviates 20 degrees from zero, set that joint torque to 0. */
-    for (int i = 0; i < 6; i++) {
-
-        if (abs(joint_data(i)) > 0.35) {
-            std::cout << "Joint " << i << " is out of bounds! Setting torque to zero." << std::endl;
-            tau(i) = 0.0;
-        }
-    }
 
     return tau;
 }
@@ -199,7 +273,7 @@ void ELMOInterface::sendTorque(JointTorque torque) {
     JointTorque torque_applied;
     torque_applied << tau_HFL, tau_HSL, tau_HSR, tau_KL, tau_HFR, tau_KR;
 
-    // populate the data pointer with the torque values (cast to int16)
+    // populate the data pointer with the torque values
     for (int i = 0; i < 6; i++) {
         this->data->torque[i] = (int16) torque_applied(i);
     }

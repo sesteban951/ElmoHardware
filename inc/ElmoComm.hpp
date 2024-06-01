@@ -11,6 +11,7 @@
 #include <math.h>
 #include <bitset>
 #include <chrono>
+#include <algorithm>
 
 // Ethercat headers
 #include <ethercat.h>

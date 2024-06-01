@@ -98,7 +98,8 @@ void *ELMOcommunication(void *data) {
             for (int i=1; i<=ec_slavecount; i++) {
 
                 // Operation Mode
-                WRITE(i, 0x6060, 0, buf8, 10, "OpMode");
+                WRITE(i, 0x6060, 0, buf8, 10, "OpMode"); // <--------------------------------------- TODO: resolve 
+                                                         // having to change this to 8 and then 10 to work
 
                 // Operation Mode Display
                 READ(i, 0x6061, 0, buf8, "OpMode display");

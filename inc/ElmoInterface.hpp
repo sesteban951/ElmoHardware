@@ -44,6 +44,46 @@ struct JointGains {
     double Kff_KR;
 };
 
+// struct for joint gains
+struct JointLimits {
+
+    // Hip Frontal Left (HFL)
+    double q_max_HFL; 
+    double q_min_HFL;
+    double qd_max_HFL; 
+    double qd_min_HFL;
+
+    // Hip Sagittal Left (HSL)
+    double q_max_HSL; 
+    double q_min_HSL;
+    double qd_max_HSL;
+    double qd_min_HSL;
+
+    // Knee Left (KL)
+    double q_max_KL;  
+    double q_min_KL;
+    double qd_max_KL;
+    double qd_min_KL;
+
+    // Hip Frontal Right (HFR)
+    double q_max_HFR; 
+    double q_min_HFR;
+    double qd_max_HFR;
+    double qd_min_HFR;
+
+    // Hip Sagittal Right (HSR)
+    double q_max_HSR; 
+    double q_min_HSR;
+    double qd_max_HSR;
+    double qd_min_HSR;
+
+    // Knee Right (KR)
+    double q_max_KR;  
+    double q_min_KR;
+    double qd_max_KR;
+    double qd_min_KR;
+};
+
 // variable for joint data
 typedef Eigen::Matrix< double, 12, 1> JointVec;    // vector for joint state
 typedef Eigen::Matrix< double, 6, 1> JointTorque;  // vector for feedforward torque
@@ -62,8 +102,9 @@ class ELMOInterface {
         void initELMO(char* port, pthread_t thread1, pthread_t thread2);
         void shutdownELMO();
 
-        // function to set the low levcel control gains
+        // function to set the low level gains and limits
         void setGains(JointGains gains);
+        void setLimits(JointLimits limits);
 
         // function to get teh ELMO status
         ELMOStatus getELMOStatus();
@@ -83,6 +124,9 @@ class ELMOInterface {
 
         // struct to hold the joint gains
         JointGains gains;
+
+        //struct to hold the joint limits
+        JointLimits limits;
 };
 
 #endif

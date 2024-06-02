@@ -18,7 +18,7 @@
 // char array to hold the ethernet port name
 char port[1028];
 
-// sine wave siganl
+// sine wave signal
 double sin_wave(double t, double A, double f) {
 
     double w, x;
@@ -54,6 +54,9 @@ int main() {
 
     // setup ethercat
     eth_port.copy(port, sizeof(port));
+
+    // operation mode (TODO: fix bug, need to start at 8 then go to 10)
+    uint8 opmode = (uint8) config["OpMode"].as<int>();
 
     // max program time
     double max_time = config["max_prog_time"].as<double>();
@@ -117,11 +120,17 @@ int main() {
     limits.qd_max_KR = config["limits"]["KR"]["qd_max"].as<double>();
 
     // for logging purposes
+    std::string log_file_time = "../data/time.csv";
     std::string log_file_data = "../data/data.csv";
+    std::string log_file_commands = "../data/commands.csv";
     std::string log_file_diagnostics = "../data/diagnostics.csv";
+    std::ofstream file_time;
     std::ofstream file_data;
+    std::ofstream file_commands;
     std::ofstream file_diagnostics;
+    file_time.open(log_file_time);
     file_data.open(log_file_data);
+    file_commands.open(log_file_commands);
     file_diagnostics.open(log_file_diagnostics);
 
     //***************************************************************
@@ -136,7 +145,7 @@ int main() {
 
     // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
-    elmo.initELMO(port, thread1, thread2);
+    elmo.initELMO(opmode, port, thread1, thread2);
 
     // initialize the intial time
     auto start = std::chrono::high_resolution_clock::now();
@@ -144,9 +153,9 @@ int main() {
 
     double sine_sig, sine_sig_dt, sin_tau;
     double A_ff, f_ff, A_ref, f_ref;
-    A_ref = 1.0;
+    A_ref = 0.3;
     f_ref = 0.5;
-    A_ff = 130.0;
+    A_ff = 0.0;
     f_ff = 0.5;
 
     // get encoder data
@@ -167,11 +176,22 @@ int main() {
 
         // specify some joint reference
         sine_sig = sin_wave(time, A_ref, f_ref);
-        sine_sig_dt = sin_wave_dt(time, A_ff, f_ff);
+        sine_sig_dt = sin_wave_dt(time, A_ref, f_ref);
         JointVec joint_ref;
         joint_ref.setZero();
+
+        // joint_ref(1) = 0.0;
+        // joint_ref(7) = 0.0;
+        joint_ref(1) = sine_sig;
+        joint_ref(7) = sine_sig_dt;
+        
         // joint_ref(2) = sine_sig;
         // joint_ref(8) = sine_sig_dt;
+        // joint_ref(2) = 0.0;
+        // joint_ref(8) = 0.0;
+        
+        // joint_ref(5) = 0.35;
+        // joint_ref(11) = 0.0;
 
         // specify some feedforward torque
         sin_tau = sin_wave(time, A_ff, f_ff);
@@ -182,14 +202,23 @@ int main() {
         JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
 
         // DEBUG
-        tau.setZero();
-        tau(2) = 140;
+        // tau.setZero();
+        tau(0) = 0.0;  // Hip Frontal Left (HFL)
+        // tau(1) = 0.0;  // Hip Sagittal Left (HSL)
+        tau(2) = 0.0;  // Knee Left (KL)
+        tau(3) = 0.0;  // Hip Frontal Right (HFR)
+        tau(4) = 0.0;  // Hip Sagittal Right (HSR)
+        tau(5) = 0.0;  // Knee Right (KR)
 
+        // send the torque command to the ELMO
         elmo.sendTorque(tau);
 
+        // log the time data
+        file_time << time << std::endl;
+
         // log the encoder and torque sent data
-        file_data << time;
-        for (int i = 0; i < data.size(); i++) {
+        file_data << data(0);
+        for (int i = 1; i < data.size(); i++) {
             file_data << ", " << data(i);
         }
         for (int i = 0; i < tau.size(); i++) {
@@ -197,14 +226,24 @@ int main() {
         }
         file_data << std::endl;
 
+        // log the reference and feedforward torque data
+        file_commands << joint_ref(0);
+        for (int i = 1; i < joint_ref.size(); i++) {
+            file_commands << ", " << joint_ref(i);
+        }
+        for (int i = 0; i < tau_ff.size(); i++) {
+            file_commands << ", " << tau_ff(i);
+        }
+        file_commands << std::endl;
+
         // log the diagnostics data
-        file_diagnostics << time;
-        for (int i = 0; i < diagnostics.size(); i++) {
+        file_diagnostics << diagnostics(0);
+        for (int i = 1; i < diagnostics.size(); i++) {
             file_diagnostics << ", " << diagnostics(i);
         }
         file_diagnostics << std::endl;
 
-        std::this_thread::sleep_for(std::chrono::microseconds(500)); // Sleep for micro seconds
+        std::this_thread::sleep_for(std::chrono::microseconds(250)); // Sleep for micro seconds
     }
 
     // shutdown the ELMOs gracefully

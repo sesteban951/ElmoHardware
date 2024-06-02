@@ -10,10 +10,13 @@
 */ 
 
 // function to intialize the ELMO motor controllers
-void ELMOInterface::initELMO(char* port, pthread_t thread1, pthread_t thread2) {
+void ELMOInterface::initELMO(uint8 opmode, char* port, pthread_t thread1, pthread_t thread2) {
 
     // Initialize the ELMO data struct
     this->data = (struct ELMOData *)malloc(sizeof(struct ELMOData));
+
+    // set the operation mode
+    this->data->OpMode = opmode;
 
     // flip the motor switch to be on
     this->data->motor_control_switch = true;
@@ -174,31 +177,31 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
         joint_ref(5) = std::min(std::max(joint_ref(5), this->limits.q_min_KR), this->limits.q_max_KR);
     }
 
-    // saturate the reference joint velocities
-    if (joint_ref(6) < this->limits.qd_min_HFL || joint_ref(6) > this->limits.qd_max_HFL) {
-        std::cout << "[WARNING] Joint HFL reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(6) = std::min(std::max(joint_ref(6), this->limits.qd_min_HFL), this->limits.qd_max_HFL);
-    }
-    if (joint_ref(7) < this->limits.qd_min_HSL || joint_ref(7) > this->limits.qd_max_HSL) {
-        std::cout << "[WARNING] Joint HSL reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(7) = std::min(std::max(joint_ref(7), this->limits.qd_min_HSL), this->limits.qd_max_HSL);
-    }
-    if (joint_ref(8) < this->limits.qd_min_KL || joint_ref(8) > this->limits.qd_max_KL) {
-        std::cout << "[WARNING] Joint KL reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(8) = std::min(std::max(joint_ref(8), this->limits.qd_min_KL), this->limits.qd_max_KL);
-    }
-    if (joint_ref(9) < this->limits.qd_min_HFR || joint_ref(9) > this->limits.qd_max_HFR) {
-        std::cout << "[WARNING] Joint HFR reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(9) = std::min(std::max(joint_ref(9), this->limits.qd_min_HFR), this->limits.qd_max_HFR);
-    }
-    if (joint_ref(10) < this->limits.qd_min_HSR || joint_ref(10) > this->limits.qd_max_HSR) {
-        std::cout << "[WARNING] Joint HSR reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(10) = std::min(std::max(joint_ref(10), this->limits.qd_min_HSR), this->limits.qd_max_HSR);
-    }
-    if (joint_ref(11) < this->limits.qd_min_KR || joint_ref(11) > this->limits.qd_max_KR) {
-        std::cout << "[WARNING] Joint KR reference velocity is out of bounds! Saturating." << std::endl;
-        joint_ref(11) = std::min(std::max(joint_ref(11), this->limits.qd_min_KR), this->limits.qd_max_KR);
-    }
+    // // saturate the reference joint velocities
+    // if (joint_ref(6) < this->limits.qd_min_HFL || joint_ref(6) > this->limits.qd_max_HFL) {
+    //     std::cout << "[WARNING] Joint HFL reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(6) = std::min(std::max(joint_ref(6), this->limits.qd_min_HFL), this->limits.qd_max_HFL);
+    // }
+    // if (joint_ref(7) < this->limits.qd_min_HSL || joint_ref(7) > this->limits.qd_max_HSL) {
+    //     std::cout << "[WARNING] Joint HSL reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(7) = std::min(std::max(joint_ref(7), this->limits.qd_min_HSL), this->limits.qd_max_HSL);
+    // }
+    // if (joint_ref(8) < this->limits.qd_min_KL || joint_ref(8) > this->limits.qd_max_KL) {
+    //     std::cout << "[WARNING] Joint KL reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(8) = std::min(std::max(joint_ref(8), this->limits.qd_min_KL), this->limits.qd_max_KL);
+    // }
+    // if (joint_ref(9) < this->limits.qd_min_HFR || joint_ref(9) > this->limits.qd_max_HFR) {
+    //     std::cout << "[WARNING] Joint HFR reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(9) = std::min(std::max(joint_ref(9), this->limits.qd_min_HFR), this->limits.qd_max_HFR);
+    // }
+    // if (joint_ref(10) < this->limits.qd_min_HSR || joint_ref(10) > this->limits.qd_max_HSR) {
+    //     std::cout << "[WARNING] Joint HSR reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(10) = std::min(std::max(joint_ref(10), this->limits.qd_min_HSR), this->limits.qd_max_HSR);
+    // }
+    // if (joint_ref(11) < this->limits.qd_min_KR || joint_ref(11) > this->limits.qd_max_KR) {
+    //     std::cout << "[WARNING] Joint KR reference velocity is out of bounds! Saturating." << std::endl;
+    //     joint_ref(11) = std::min(std::max(joint_ref(11), this->limits.qd_min_KR), this->limits.qd_max_KR);
+    // }
     
     // compute the torque for each joint
     tau_HFL = this->gains.Kp_HFL * (joint_ref(0) - joint_data(0)) 
@@ -234,10 +237,10 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
         std::cout << "[WARNING] Joint HFL is out of bounds! Setting torque to zero." << std::endl;
         tau_HSL = 0.0;
     }
-    // if (joint_data(2) < this->limits.q_min_KL || joint_data(2) > this->limits.q_max_KL) {
-    //     std::cout << "[WARNING] Joint KL is out of bounds! Setting torque to zero." << std::endl;
-    //     tau_KL = 0.0;
-    // }
+    if (joint_data(2) < this->limits.q_min_KL || joint_data(2) > this->limits.q_max_KL) {
+        std::cout << "[WARNING] Joint KL is out of bounds! Setting torque to zero." << std::endl;
+        tau_KL = 0.0;
+    }
     if (joint_data(3) < this->limits.q_min_HFR || joint_data(3) > this->limits.q_max_HFR) {
         std::cout << "[WARNING] Joint HFR is out of bounds! Setting torque to zero." << std::endl;
         tau_HFR = 0.0;

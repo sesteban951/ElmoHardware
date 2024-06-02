@@ -8,11 +8,18 @@ ethernet: "enx00e04c68005e"    # desktop dock
 # ethernet: "enx9cebe83faea0" # amber ethernet adapter
 
 ############################################################################
+# OPERATION MODE
+############################################################################
+
+# operation mode of the motor controllers (TODO: right now 8->10)
+OpMode: 10
+
+############################################################################
 # PROGRAM TIME
 ############################################################################
 
 # max testing time [sec]
-max_prog_time: 30.0
+max_prog_time: 300.0
 
 ############################################################################
 # JOINT GAINS
@@ -29,14 +36,14 @@ gains:
 
   # Hip Sagittal Left (HSL)
   HSL:
-    Kp: 0.0
-    Kd: 0.0
+    Kp: 1900.0
+    Kd: 20.0
     Kff: 0.0
 
   # Knee Left (KL)
   KL:
-    Kp: 0.0
-    Kd: 0.0
+    Kp: 2100.0
+    Kd: 20.0
     Kff: 0.0
 
   # Hip Frontal Right (HFR)
@@ -53,8 +60,8 @@ gains:
 
   # Knee Right (KR)
   KR:
-    Kp: 0.0
-    Kd: 0.0
+    Kp: 1900.0
+    Kd: 20.0
     Kff: 0.0
 
 ############################################################################
@@ -66,15 +73,15 @@ limits:
 
   # Hip Frontal Left (HFL)
   HFL:
-    q_min: -0.1
-    q_max: 0.1
+    q_min: -0.35
+    q_max: 0.35
     qd_min: -1.0
     qd_max: 1.0
 
   # Hip Sagittal Left (HSL)
   HSL:
-    q_min: -0.1
-    q_max: 0.1
+    q_min: -0.5
+    q_max: 0.35
     qd_min: -1.0
     qd_max: 1.0
 
@@ -87,22 +94,22 @@ limits:
 
   # Hip Frontal Right (HFR)
   HFR:
-    q_min: -0.1
-    q_max: 0.1
+    q_min: -0.35
+    q_max: 0.35
     qd_min: -1.0
     qd_max: 1.0
 
   # Hip Sagittal Right (HSR)
   HSR:
-    q_min: -0.1
-    q_max: 0.1
+    q_min: -0.5
+    q_max: 0.35
     qd_min: -1.0
     qd_max: 1.0
 
   # Knee Right (KR)
   KR:
-    q_min: -0.1
-    q_max: 0.1
+    q_min: -0.52
+    q_max: 0.52
     qd_min: -1.0
     qd_max: 1.0
 

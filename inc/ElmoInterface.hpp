@@ -99,7 +99,7 @@ class ELMOInterface {
         ~ELMOInterface() {};
 
         // function to initialize/shutdown ELMO
-        void initELMO(char* port, pthread_t thread1, pthread_t thread2);
+        void initELMO(uint8 opmode, char* port, pthread_t thread1, pthread_t thread2);
         void shutdownELMO();
 
         // function to set the low level gains and limits

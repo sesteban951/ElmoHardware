@@ -94,12 +94,14 @@ void *ELMOcommunication(void *data) {
             
             ec_statecheck(0, EC_STATE_PRE_OP,  EC_TIMEOUTSTATE);
 
-            /** opMode: 10  => Cyclic Synchronous Torque */
+            /** opMode: 8   => Cyclic position 
+                opMode: 10  => Cyclic Synchronous Torque */
+            uint8 opmode = data_pointer->OpMode;
             for (int i=1; i<=ec_slavecount; i++) {
 
                 // Operation Mode
-                WRITE(i, 0x6060, 0, buf8, 10, "OpMode"); // <--------------------------------------- TODO: resolve 
-                                                         // having to change this to 8 and then 10 to work
+                WRITE(i, 0x6060, 0, buf8, opmode, "OpMode"); // <--- TODO: resolve 
+                                                             // having to change this to 8 and then 10 to work
 
                 // Operation Mode Display
                 READ(i, 0x6061, 0, buf8, "OpMode display");
@@ -278,8 +280,8 @@ void *ELMOcommunication(void *data) {
                                 target[i]->torque = (int16) 0;
                             } 
                             else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
-                                // SDO
-                                std::cout << "Drive " << i+1 << " is in SDO." << std::endl;
+                                // SOD
+                                std::cout << "Drive " << i+1 << " is in SOD." << std::endl;
                                 ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
                                 ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
                                 target[i]->controlword = ctrlWord_tmp; 
@@ -346,7 +348,7 @@ void *ELMOcommunication(void *data) {
                         }
                     }
                     needlf = TRUE;
-                    usleep(500);
+                    usleep(250);
                 }
 
                 //----------------------------------------- SHUTDOWN ------------------------------------------

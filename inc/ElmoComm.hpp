@@ -27,6 +27,7 @@
 
 // struct for general ELMO data
 struct ELMOData{
+  uint8 OpMode;              // operation mode
   char port[1028];           // ethernet port container
   bool motor_control_switch; // desired motor state
   int commStatus;            // communication status

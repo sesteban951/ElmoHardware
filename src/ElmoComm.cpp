@@ -52,7 +52,8 @@ uint8 currentgroup = 0;
 
 // ELMO communication function. Setup and stream data
 void *ELMOcommunication(void *data) {
-    
+
+    // useful variables
     int i, chk;
     needlf = FALSE;
     inOP = FALSE;
@@ -237,118 +238,137 @@ void *ELMOcommunication(void *data) {
 
                 // set the communication status to operating
                 data_pointer->commStatus = 1;
+
+                // for maintaining the loop frequency
+                auto t1 = std::chrono::high_resolution_clock::now();
+                double dt = 0.0;
+
+                // main loop
                 while(1) {
 
+                    // check if the motor state is switched ot off
                     if (data_pointer->motor_control_switch == false) {
                         break;
                     }
+
+                    // for maintaining the loop frequency
+                    auto t2 = std::chrono::high_resolution_clock::now();
+                    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+                    dt = duration.count() / 1'000'000.0; // convert to seconds
                     
-                    /** PDO I/O refresh */
-                    ec_send_processdata();
-                    wkc = ec_receive_processdata(EC_TIMEOUTRET);
+                    // execute this block of code every 1/freq seconds
+                    if (dt >= (1.0 / data_pointer->freq)) {
 
-                    if(wkc >= expectedWKC) {
+                        // update the time
+                        t1 = t2;
 
-                        // update the data pointer with newest ELMO encoder data
-                        for (int j = 0; j < ec_slavecount; j++) {
+                        /** PDO I/O refresh */
+                        ec_send_processdata();
+                        wkc = ec_receive_processdata(EC_TIMEOUTRET);
 
-                            // update torque sent to ELMO
-                            data_pointer->torque[j] = target[j]->torque;
+                        if(wkc >= expectedWKC) {
+
+                            // update the data pointer with newest ELMO encoder data
+                            for (int j = 0; j < ec_slavecount; j++) {
+
+                                // update torque sent to ELMO
+                                data_pointer->torque[j] = target[j]->torque;
+                                
+                                // update encoder data
+                                data_pointer->pos[j] = val[j]->position;  
+                                data_pointer->vel[j] = val[j]->velocity;
+
+                                // update diagnostic data
+                                data_pointer->inputs[j] = val[j]->inputs;
+                                data_pointer->controlword[j] = target[j]->controlword; 
+                                data_pointer->statusword[j] = val[j]->status;
+                            }
                             
-                            // update encoder data
-                            data_pointer->pos[j] = val[j]->position;  
-                            data_pointer->vel[j] = val[j]->velocity;
+                            // std::cout << "-----------------------------------" << std::endl;
+                            
+                            for (int i = 0; i < ec_slavecount; i++)  {        
 
-                            // update diagnostic data
-                            data_pointer->inputs[j] = val[j]->inputs;
-                            data_pointer->controlword[j] = target[j]->controlword; 
-                            data_pointer->statusword[j] = val[j]->status;
-                        }
-                        
-                        std::cout << "-----------------------------------" << std::endl;
-                        
-                        for (int i = 0; i < ec_slavecount; i++)  {        
+                                // Do it for the first elmo slave
+                                uint16_t ctrlWord_tmp = 0;
+                                uint16 statusWord = val[i]->status;
+                                // std::cout << "\nStatus "<< i+1 <<": " << statusWord << std::endl;
 
-                            // Do it for the first elmo slave
-                            uint16_t ctrlWord_tmp = 0;
-                            uint16 statusWord = val[i]->status;
-                            std::cout << "\nStatus "<< i+1 <<": " << statusWord << std::endl;
+                                if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
+                                    // NOT READY
+                                    // std::cout << "Drive " << i+1 <<" NOT ready." << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                } 
+                                else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
+                                    // SOD
+                                    std::cout << "Drive " << i+1 << " is in SOD." << std::endl;
+                                    ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
+                                    target[i]->controlword = ctrlWord_tmp; 
+                                    // std::cout << "Control word: " << target[i]->controlword << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                    // RSO
+                                    std::cout << "Drive " << i+1 << " is in RSO." << std::endl;
+                                    ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                    target[i]->controlword = ctrlWord_tmp; 
+                                    // std::cout << "Control word: " << target[i]->controlword << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                    // SO
+                                    std::cout << "Drive " << i+1 << " in SO." << std::endl;
+                                    ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
+                                    target[i]->controlword = ctrlWord_tmp;
+                                    // std::cout << "Control word: " << target[i]->controlword << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
+                                    // ARMED
+                                    std::cout << "Drive " << i+1 << " ARMED." << std::endl;
+                                    ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
+                                    target[i]->controlword = ctrlWord_tmp;
+                                    std::cout << "Control word: " << target[i]->controlword << std::endl;
 
-                            if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
-                                // NOT READY
-                                std::cout << "Drive " << i+1 <<" NOT ready." << std::endl;
-                                target[i]->torque = (int16) 0;
-                            } 
-                            else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
-                                // SOD
-                                std::cout << "Drive " << i+1 << " is in SOD." << std::endl;
-                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
-                                target[i]->controlword = ctrlWord_tmp; 
-                                std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-                            else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                                // RSO
-                                std::cout << "Drive " << i+1 << " is in RSO." << std::endl;
-                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                                target[i]->controlword = ctrlWord_tmp; 
-                                std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                                // SO
-                                std::cout << "Drive " << i+1 << " in SO." << std::endl;
-                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
+                                    // Apply the desired torque
+                                    target[i]->torque = data_pointer->torque[i];
+                                }
+                                else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
+                                    // FAILED
+                                    // std::cout << "Drive " << i+1 << " QUICK STOPPED." << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                                    // FAILED
+                                    // std::cout << "Drive " << i+1 << " FAILED: fault reaction active." << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
+                                    // FAILED
+                                    // std::cout << "Drive " << i+1 << " FAILED: fault." << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+                                else{
+                                    // unknown state
+                                    // std::cout << "Drive " << i+1 << " FAILED: unknown state." << std::endl;
+                                    target[i]->torque = (int16) 0;
+                                }
+
+                                // send the control word to the ELMO based on what status word was read
                                 target[i]->controlword = ctrlWord_tmp;
-                                std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                target[i]->torque = (int16) 0;
                             }
-                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
-                                // ARMED
-                                std::cout << "Drive " << i+1 << " ARMED." << std::endl;
-                                ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
-                                ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
-                                target[i]->controlword = ctrlWord_tmp;
-                                std::cout << "Control word: " << target[i]->controlword << std::endl;
-
-                                // Apply the desired torque
-                                target[i]->torque = data_pointer->torque[i];
-                            }
-                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
-                                // FAILED
-                                std::cout << "Drive " << i+1 << " QUICK STOPPED." << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-                            else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
-                                // FAILED
-                                std::cout << "Drive " << i+1 << " FAILED: fault reaction active." << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-                            else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
-                                // FAILED
-                                std::cout << "Drive " << i+1 << " FAILED: fault." << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-                            else{
-                                // unknown state
-                                std::cout << "Drive " << i+1 << " FAILED: unknown state." << std::endl;
-                                target[i]->torque = (int16) 0;
-                            }
-
-                            // send the control word to the ELMO based on what status word was read
-                            target[i]->controlword = ctrlWord_tmp;
                         }
+                        needlf = TRUE;
                     }
-                    needlf = TRUE;
-                    usleep(250);
+                    usleep(10);
                 }
 
                 //----------------------------------------- SHUTDOWN ------------------------------------------
@@ -427,7 +447,7 @@ void *ELMOcommunication(void *data) {
 
 // callback function to check for ethercat comm errors
 void *ecatcheck(void* why) {
-    
+
     int slave;
 
     while(1)
@@ -498,6 +518,6 @@ void *ecatcheck(void* why) {
             if(!ec_group[currentgroup].docheckstate)
                printf(".");
         }
-        usleep(250);
+        usleep(1000);
     }
 }

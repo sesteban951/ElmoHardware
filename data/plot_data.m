@@ -79,6 +79,7 @@ for i = 1:6
 
 end
 
+% plot diagnostic data
 figure('Name','Diagnostic Data');
 tabgp = uitabgroup;
 for i = 1:6
@@ -104,3 +105,16 @@ for i = 1:6
     xlabel('Time (s)');
     grid on;
 end
+
+% plot data rates
+figure('Name','Data Rates');
+dt = time(2:end) - time(1:end-1);
+dt_ms = dt * 1000;
+plot(time(2:end), dt_ms);
+xlabel('Time [s]');
+ylabel('dt [ms]');
+
+mean = mean(dt_ms);
+std = std(dt_ms);
+mesg = sprintf('DataRates \n Mean: %.3f ms, Std: %.3f ms', mean, std);
+title(mesg);

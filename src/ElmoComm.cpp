@@ -118,7 +118,10 @@ void *ELMOcommunication(void *data) {
             for (int i=1; i<=ec_slavecount; i++) {                
 
                 //  set to 'Target Torque'
-                os=sizeof(ob2); ob2 = 0x16020001;            
+                // os=sizeof(ob2); ob2 = 0x16020001;            
+                
+                // set to 'Target Position'
+                os=sizeof(ob2); ob2 = 0x16000001;
                 ec_SDOwrite(i, 0x1c12, 0, TRUE, os, &ob2, EC_TIMEOUTRXM);
                 
                 //  set to 'Position/Velocity Actual Values'

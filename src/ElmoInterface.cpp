@@ -24,13 +24,14 @@ void ELMOInterface::initELMO(uint8 opmode, char* port, pthread_t thread1, pthrea
     // Inital values to populate the ELMO data struct
     int32 pos0[6] = {0,0,0,0,0,0};
     int32 vel0[6] = {0,0,0,0,0,0};
-    int32 torque0[6] = {0,0,0,0,0,0};
+    // int32 torque0[6] = {0,0,0,0,0,0};
+    int32 position0[6] = {0,0,0,0,0,0};
 
     // Populate the ELMO data struct with the intial values
-    memcpy(this->data->pos, pos0, sizeof(pos0));          // set the position to zero
-    memcpy(this->data->vel, vel0, sizeof(vel0));          // set the velocity to zero
-    memcpy(this->data->torque, torque0, sizeof(torque0)); // set the torque to zero
-    strcpy(this->data->port, port);                       // attach the ethernet port
+    memcpy(this->data->pos, pos0, sizeof(pos0));                // set the position to zero
+    memcpy(this->data->vel, vel0, sizeof(vel0));                // set the velocity to zero
+    memcpy(this->data->position, position0, sizeof(position0)); // set the torque to zero
+    strcpy(this->data->port, port);                             // attach the ethernet port
 
     printf("SOEM (Simple Open EtherCAT Master)\nSetting Up ELMO drivers...\n");
     
@@ -261,23 +262,24 @@ JointTorque ELMOInterface::computeTorque(JointVec joint_ref, JointTorque tau_ff)
 }
 
 // function to send target torque to the ELMO
-void ELMOInterface::sendTorque(JointTorque torque) {
+void ELMOInterface::sendPosition(JointTorque torque) {
     
     // unpack the torque vector
-    double tau_HFL, tau_HSL, tau_KL, tau_HFR, tau_HSR, tau_KR;
-    tau_HFL = torque(0);
-    tau_HSL = torque(1);
-    tau_KL  = torque(2);
-    tau_HFR = torque(3);
-    tau_HSR = torque(4);
-    tau_KR  = torque(5);
+    double p_HFL, p_HSL, p_KL, p_HFR, p_HSR, p_KR;
+    p_HFL = torque(0);
+    p_HSL = torque(1);
+    p_KL  = torque(2);
+    p_HFR = torque(3);
+    p_HSR = torque(4);
+    p_KR  = torque(5);
 
     // reorder the torques to match the ELMO daisy chain order
-    JointTorque torque_applied;
-    torque_applied << tau_HFL, tau_HSL, tau_HSR, tau_KL, tau_HFR, tau_KR;
+    JointTorque position_applied;
+    position_applied << p_HFL, p_HSL, p_HSR, p_KL, p_HFR, p_KR;
 
     // populate the data pointer with the torque values
     for (int i = 0; i < 6; i++) {
-        this->data->torque[i] = (int16) torque_applied(i);
+        // this->data->torque[i] = (int16) torque_applied(i);
+        this->data->position[i] = (int16) position_applied(i);
     }
 }

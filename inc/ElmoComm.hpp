@@ -31,7 +31,8 @@ struct ELMOData{
   char port[1028];           // ethernet port container
   bool motor_control_switch; // desired motor state
   int commStatus;            // communication status
-  int16 torque[6];           // desried torque commands from Laptop
+  // int16 torque[6];           // desried torque commands from Laptop
+  int16 position[6];           // desried torque commands from Laptop
   int32 pos[6];              // encoder joint position from ELMO
   int32 vel[6];              // encoder joint velocity from ELMO
   uint32 inputs[6];          // inputs
@@ -41,8 +42,15 @@ struct ELMOData{
 
 // struct to hold out-going data, Laptop --> ELMO
 // Torque Control (x1602)
+// struct ELMOOut {
+//    int16_t torque;       // "Torque Command"
+//    uint16_t controlword; // "Control Word", converted to binary and use DS402 SM, 6040
+// };
+
+// Position Control (x1600)
 struct ELMOOut {
-   int16_t torque;       // "Torque Command"
+   int32_t position;     // "Target Position"
+   int32_t inputs;       // "Digital Inputs"
    uint16_t controlword; // "Control Word", converted to binary and use DS402 SM, 6040
 };
 

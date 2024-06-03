@@ -153,8 +153,8 @@ int main() {
 
     double sine_sig, sine_sig_dt, sin_tau;
     double A_ff, f_ff, A_ref, f_ref;
-    A_ref = 0.3;
-    f_ref = 0.5;
+    A_ref = 0.2;
+    f_ref = 0.25;
     A_ff = 0.0;
     f_ff = 0.5;
 
@@ -180,18 +180,35 @@ int main() {
         JointVec joint_ref;
         joint_ref.setZero();
 
-        // joint_ref(1) = 0.0;
-        // joint_ref(7) = 0.0;
-        joint_ref(1) = sine_sig;
-        joint_ref(7) = sine_sig_dt;
-        
+        // HSL
+        // joint_ref(0) = -0.3;
+        // joint_ref(6) = 0.0;
+        joint_ref(0) = sine_sig;
+        joint_ref(6) = sine_sig_dt;
+
+        // HSL
+        joint_ref(1) = 0.2;
+        joint_ref(7) = 0.0;
+        // joint_ref(1) = sine_sig;
+        // joint_ref(7) = sine_sig_dt;
+
+        // KL 
+        joint_ref(2) = 0.0;
+        joint_ref(8) = 0.0;
         // joint_ref(2) = sine_sig;
         // joint_ref(8) = sine_sig_dt;
-        // joint_ref(2) = 0.0;
-        // joint_ref(8) = 0.0;
+
+        // HSR
+        joint_ref(4) = -0.0;
+        joint_ref(10) = 0.0;
+        // joint_ref(4) = sine_sig;
+        // joint_ref(10) = sine_sig_dt;
         
-        // joint_ref(5) = 0.35;
-        // joint_ref(11) = 0.0;
+        // KR
+        joint_ref(5) = 0.0;
+        joint_ref(11) = 0.0;
+        // joint_ref(5) = sine_sig;
+        // joint_ref(11) = sine_sig_dt;
 
         // specify some feedforward torque
         sin_tau = sin_wave(time, A_ff, f_ff);
@@ -203,12 +220,12 @@ int main() {
 
         // DEBUG
         // tau.setZero();
-        tau(0) = 0.0;  // Hip Frontal Left (HFL)
+        // tau(0) = 0.0;  // Hip Frontal Left (HFL)
         // tau(1) = 0.0;  // Hip Sagittal Left (HSL)
-        tau(2) = 0.0;  // Knee Left (KL)
+        // tau(2) = 0.0;  // Knee Left (KL)
         tau(3) = 0.0;  // Hip Frontal Right (HFR)
-        tau(4) = 0.0;  // Hip Sagittal Right (HSR)
-        tau(5) = 0.0;  // Knee Right (KR)
+        // tau(4) = 0.0;  // Hip Sagittal Right (HSR)
+        // tau(5) = 0.0;  // Knee Right (KR)
 
         // send the torque command to the ELMO
         elmo.sendTorque(tau);

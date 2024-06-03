@@ -79,28 +79,28 @@ for i = 1:6
 
 end
 
-% figure('Name','Diagnostic Data');
-% tabgp = uitabgroup;
-% for i = 1:6
+figure('Name','Diagnostic Data');
+tabgp = uitabgroup;
+for i = 1:6
     
-%     tab = uitab(tabgp, 'Title', labels(i));
-%     axes('Parent', tab);
+    tab = uitab(tabgp, 'Title', labels(i));
+    axes('Parent', tab);
 
-%     subplot(3,1,1);
-%     plot(time, inputs(:,i)); hold on;   % plot the digital inputs
-%     title('Inputs');
-%     xlabel('Time (s)');
-%     grid on;
+    subplot(3,1,1);
+    plot(time, inputs(:,i)); hold on;   % plot the digital inputs
+    title('Inputs');
+    xlabel('Time (s)');
+    grid on;
 
-%     subplot(3,1,2);
-%     plot(time, controls(:,i)); hold on; % plot the control word
-%     title('Control Word');
-%     xlabel('Time (s)');
-%     grid on;
+    subplot(3,1,2);
+    plot(time, controls(:,i)); hold on; % plot the control word
+    title('Control Word');
+    xlabel('Time (s)');
+    grid on;
 
-%     subplot(3,1,3);
-%     plot(time, status(:,i)); hold on;   % plot the status word
-%     title('Status Word');
-%     xlabel('Time (s)');
-%     grid on;
-% end
+    subplot(3,1,3);
+    plot(time, status(:,i)); hold on;   % plot the status word
+    title('Status Word');
+    xlabel('Time (s)');
+    grid on;
+end

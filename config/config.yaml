@@ -19,7 +19,7 @@ OpMode: 10
 ############################################################################
 
 # max testing time [sec]
-max_prog_time: 300.0
+max_prog_time: 10.0
 
 ############################################################################
 # JOINT GAINS
@@ -30,20 +30,20 @@ gains:
 
   # Hip Frontal Left (HFL)
   HFL:
-    Kp: 0.0
-    Kd: 0.0
+    Kp: 1500.0
+    Kd: 50.0
     Kff: 0.0
 
   # Hip Sagittal Left (HSL)
   HSL:
-    Kp: 1900.0
-    Kd: 20.0
+    Kp: 2500.0
+    Kd: 85.0
     Kff: 0.0
 
   # Knee Left (KL)
   KL:
-    Kp: 2100.0
-    Kd: 20.0
+    Kp: 3200.0
+    Kd: 150.0
     Kff: 0.0
 
   # Hip Frontal Right (HFR)
@@ -54,14 +54,14 @@ gains:
 
   # Hip Sagittal Right (HSR)
   HSR:
-    Kp: 0.0
-    Kd: 0.0
+    Kp: 3000.0
+    Kd: 90.0
     Kff: 0.0
 
   # Knee Right (KR)
   KR:
-    Kp: 1900.0
-    Kd: 20.0
+    Kp: 3200.0
+    Kd: 250.0
     Kff: 0.0
 
 ############################################################################
@@ -74,7 +74,7 @@ limits:
   # Hip Frontal Left (HFL)
   HFL:
     q_min: -0.35
-    q_max: 0.35
+    q_max: 0.3
     qd_min: -1.0
     qd_max: 1.0
 
@@ -94,7 +94,7 @@ limits:
 
   # Hip Frontal Right (HFR)
   HFR:
-    q_min: -0.35
+    q_min: -0.3
     q_max: 0.35
     qd_min: -1.0
     qd_max: 1.0

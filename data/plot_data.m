@@ -116,5 +116,5 @@ ylabel('dt [ms]');
 
 mean = mean(dt_ms);
 std = std(dt_ms);
-mesg = sprintf('DataRates \n Mean: %.3f ms, Std: %.3f ms', mean, std);
+mesg = sprintf('Data Rates \n Mean: %.3f ms, Std: %.3f ms', mean, std);
 title(mesg);

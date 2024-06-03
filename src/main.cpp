@@ -41,7 +41,7 @@ double sin_wave_dt(double t, double A, double f) {
 }
 
 // main ELMO control loop
-void* main_loop(void * arg) {
+int main() {
 
     // load config file
     std::string config_file = "../config/config.yaml";
@@ -274,74 +274,10 @@ void* main_loop(void * arg) {
             }
             file_diagnostics << std::endl;
         }
-        usleep(10);
     }
 
     // shutdown the ELMOs gracefully
     elmo.shutdownELMO();
 
-    return NULL;
-}
-
-// ***************************************************************
-
-int main() {
-
-     pthread_t thread;
-    pthread_attr_t attr;
-    struct sched_param param;
-    int max_priority;
-    int ret;
-
-    // Initialize thread attribute
-    ret = pthread_attr_init(&attr);
-    if (ret != 0) {
-        perror("pthread_attr_init");
-        return EXIT_FAILURE;
-    }
-
-    // Set the scheduling policy to SCHED_FIFO
-    ret = pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
-    if (ret != 0) {
-        perror("pthread_attr_setschedpolicy");
-        return EXIT_FAILURE;
-    }
-
-    // Set the priority to the maximum value
-    max_priority = sched_get_priority_max(SCHED_FIFO);
-    param.sched_priority = max_priority;
-    ret = pthread_attr_setschedparam(&attr, &param);
-    if (ret != 0) {
-        perror("pthread_attr_setschedparam");
-        return EXIT_FAILURE;
-    }
-
-    // Ensure the thread inherits the specified scheduling attributes
-    ret = pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
-    if (ret != 0) {
-        perror("pthread_attr_setinheritsched");
-        return EXIT_FAILURE;
-    }
-
-    // Create the thread with the specified attributes
-    ret = pthread_create(&thread, &attr, main_loop, NULL);
-    if (ret != 0) {
-        perror("pthread_create");
-        return EXIT_FAILURE;
-    }
-
-    // Destroy the thread attribute object, since it is no longer needed
-    pthread_attr_destroy(&attr);
-
-    // Wait for the thread to finish (optional, depending on your use case)
-    ret = pthread_join(thread, NULL);
-    if (ret != 0) {
-        perror("pthread_join");
-        return EXIT_FAILURE;
-    }
-
     return 0;
 }
-
-// ***************************************************************
-

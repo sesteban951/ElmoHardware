@@ -368,7 +368,7 @@ void *ELMOcommunication(void *data) {
                         }
                         needlf = TRUE;
                     }
-                    usleep(10);
+                    // usleep(10);
                 }
 
                 //----------------------------------------- SHUTDOWN ------------------------------------------

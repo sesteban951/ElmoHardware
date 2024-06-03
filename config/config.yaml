@@ -13,7 +13,7 @@ ethernet: "enx00e04c68005e"    # desktop dock
 
 # operation mode of the motor controllers (TODO: right now 8->10)
 OpMode: 10       # 8: Position Mode, 10: Torque Mode
-frequency: 2000  # [Hz]
+frequency: 2500  # [Hz]
 
 ############################################################################
 # PROGRAM TIME

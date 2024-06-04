@@ -31,10 +31,11 @@ target_link_libraries(ELMOINTERFACE PUBLIC ELMOCOMM Eigen3::Eigen)
 
 # main executable
 add_executable(s src/main.cpp)               
-target_link_libraries(s PUBLIC ELMOCOMM)
-target_link_libraries(s PUBLIC ELMOINTERFACE)
-target_link_libraries(s PUBLIC Eigen3::Eigen)
-target_link_libraries(s PUBLIC yaml-cpp)
+target_link_libraries(s PUBLIC 
+                      ELMOCOMM
+                      ELMOINTERFACE
+                      Eigen3::Eigen
+                      yaml-cpp)
 
 # SOEM simple test executable
 add_executable(simple_test src/simple_test.c)

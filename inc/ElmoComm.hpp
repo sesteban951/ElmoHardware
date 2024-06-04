@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sched.h>
 #include <math.h>
 #include <bitset>
 #include <chrono>
@@ -31,8 +32,8 @@ struct ELMOData{
   char port[1028];           // ethernet port container
   bool motor_control_switch; // desired motor state
   int commStatus;            // communication status
-  // int16 torque[6];           // desried torque commands from Laptop
-  int16 position[6];           // desried torque commands from Laptop
+  double freq;               // frequency of control loop
+  int16 torque[6];           // desried torque commands from Laptop
   int32 pos[6];              // encoder joint position from ELMO
   int32 vel[6];              // encoder joint velocity from ELMO
   uint32 inputs[6];          // inputs

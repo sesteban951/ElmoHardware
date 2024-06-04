@@ -12,14 +12,15 @@ ethernet: "enx00e04c68005e"    # desktop dock
 ############################################################################
 
 # operation mode of the motor controllers (TODO: right now 8->10)
-OpMode: 8
+OpMode: 10       # 8: Position Mode, 10: Torque Mode
+frequency: 2500  # [Hz]
 
 ############################################################################
 # PROGRAM TIME
 ############################################################################
 
 # max testing time [sec]
-max_prog_time: 10
+max_prog_time: 30.0
 
 ############################################################################
 # JOINT GAINS

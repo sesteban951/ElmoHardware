@@ -58,6 +58,9 @@ int main() {
     // operation mode (TODO: fix bug, need to start at 8 then go to 10)
     uint8 opmode = (uint8) config["OpMode"].as<int>();
 
+    // operating frequency
+    double freq = config["frequency"].as<double>();
+
     // max program time
     double max_time = config["max_prog_time"].as<double>();
 
@@ -145,128 +148,140 @@ int main() {
 
     // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
-    elmo.initELMO(opmode, port, thread1, thread2);
+    elmo.initELMO(opmode, freq, port, thread1, thread2);
 
-    // initialize the intial time
-    auto start = std::chrono::high_resolution_clock::now();
-    double time = 0.0;
-
+    // for trajectory generation
     double sine_sig, sine_sig_dt, sin_tau;
-    double A_ff, f_ff, A_ref, f_ref;
+    double A_ref, f_ref;
     A_ref = 0.2;
     f_ref = 0.25;
-    A_ff = 0.0;
-    f_ff = 0.5;
+
+    // initialize the intial time
+    bool first_time = true;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto t1 = start;
+    double dt = 0.0, time = 0.0;
 
     // get encoder data
     while (time <= max_time) {
 
-        // std::cout << "\n-----------------------------------------\n" << std::endl;
-
         // get the current time in seconds
-        auto now = std::chrono::high_resolution_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - start);
-        time = duration.count() / 1'000'000.0; // convert to seconds
-
-        // get the currebt ELMO status
-        ELMOStatus diagnostics = elmo.getELMOStatus();
-
-        // get the current encoder data
-        JointVec data = elmo.getEncoderData();
-
-        // specify some joint reference
-        sine_sig = sin_wave(time, A_ref, f_ref);
-        sine_sig_dt = sin_wave_dt(time, A_ref, f_ref);
-        JointVec joint_ref;
-        joint_ref.setZero();
-
-        // HSL
-        // joint_ref(0) = -0.3;
-        // joint_ref(6) = 0.0;
-        joint_ref(0) = sine_sig;
-        joint_ref(6) = sine_sig_dt;
-
-        // HSL
-        joint_ref(1) = 0.2;
-        joint_ref(7) = 0.0;
-        // joint_ref(1) = sine_sig;
-        // joint_ref(7) = sine_sig_dt;
-
-        // KL 
-        joint_ref(2) = 0.0;
-        joint_ref(8) = 0.0;
-        // joint_ref(2) = sine_sig;
-        // joint_ref(8) = sine_sig_dt;
-
-        // HSR
-        joint_ref(4) = -0.0;
-        joint_ref(10) = 0.0;
-        // joint_ref(4) = sine_sig;
-        // joint_ref(10) = sine_sig_dt;
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto duration_dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+        dt = duration_dt.count() / 1'000'000.0; 
         
-        // KR
-        joint_ref(5) = 0.0;
-        joint_ref(11) = 0.0;
-        // joint_ref(5) = sine_sig;
-        // joint_ref(11) = sine_sig_dt;
+        if (dt >= (1.0 / freq) || first_time == true) {
 
-        // specify some feedforward torque
-        sin_tau = sin_wave(time, A_ff, f_ff);
-        JointTorque tau_ff;
-        tau_ff.setZero();
+            // update first time
+            first_time = false;
 
-        // compute the net torque command
-        JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
+            // update time
+            t1 = t2;
 
-        // DEBUG
-        // tau.setZero();
-        // tau(0) = 0.0;  // Hip Frontal Left (HFL)
-        // tau(1) = 0.0;  // Hip Sagittal Left (HSL)
-        // tau(2) = 0.0;  // Knee Left (KL)
-        tau(3) = 0.0;  // Hip Frontal Right (HFR)
-        // tau(4) = 0.0;  // Hip Sagittal Right (HSR)
-        // tau(5) = 0.0;  // Knee Right (KR)
+            // for logging time
+            auto duration_tot = std::chrono::duration_cast<std::chrono::microseconds>(t2 - start);
+            time = duration_tot.count() / 1'000'000.0; 
 
-        // send the torque command to the ELMO
-        elmo.sendTorque(tau);
+            // get the current ELMO status
+            ELMOStatus diagnostics = elmo.getELMOStatus();
 
-        // log the time data
-        file_time << time << std::endl;
+            // get the current encoder data
+            JointVec data = elmo.getEncoderData();
 
-        // log the encoder and torque sent data
-        file_data << data(0);
-        for (int i = 1; i < data.size(); i++) {
-            file_data << ", " << data(i);
+            // specify some joint reference
+            sine_sig = sin_wave(time, A_ref, f_ref);
+            sine_sig_dt = sin_wave_dt(time, A_ref, f_ref);
+            JointVec joint_ref;
+            joint_ref.setZero();
+
+            // HSL
+            joint_ref(0) = -0.0;
+            joint_ref(6) = 0.0;
+            // joint_ref(0) = sine_sig;
+            // joint_ref(6) = sine_sig_dt;
+
+            // HSL
+            joint_ref(1) = 0.0;
+            joint_ref(7) = 0.0;
+            // joint_ref(1) = sine_sig;
+            // joint_ref(7) = sine_sig_dt;
+
+            // KL 
+            joint_ref(2) = 0.0;
+            joint_ref(8) = 0.0;
+            // joint_ref(2) = sine_sig;
+            // joint_ref(8) = sine_sig_dt;
+
+            // HFR
+            joint_ref(3) = -0.0;
+            joint_ref(9) = 0.0;
+            // joint_ref(3) = sine_sig;
+            // joint_ref(9) = sine_sig_dt;
+
+            // HSR
+            joint_ref(4) = 0.0;
+            joint_ref(10) = 0.0;
+            // joint_ref(4) = sine_sig;
+            // joint_ref(10) = sine_sig_dt;
+            
+            // KR
+            joint_ref(5) = -0.0;
+            joint_ref(11) = 0.0;
+            // joint_ref(5) = sine_sig;
+            // joint_ref(11) = sine_sig_dt;
+
+            // specify some feedforward torque
+            JointTorque tau_ff;
+            tau_ff.setZero();
+
+            // compute the net torque command
+            JointTorque tau = elmo.computeTorque(joint_ref, tau_ff);
+
+            // DEBUG
+            tau(0) = 0.0;  // Hip Frontal Left (HFL)
+            tau(1) = 0.0;  // Hip Sagittal Left (HSL)
+            tau(2) = 0.0;  // Knee Left (KL)
+            tau(3) = 0.0;  // Hip Frontal Right (HFR)
+            tau(4) = 0.0;  // Hip Sagittal Right (HSR)
+            tau(5) = 0.0;  // Knee Right (KR)
+
+            // send the torque command to the ELMO
+            elmo.sendTorque(tau);
+
+            // log the time data
+            file_time << time << std::endl;
+
+            // log the encoder and torque sent data
+            file_data << data(0);
+            for (int i = 1; i < data.size(); i++) {
+                file_data << ", " << data(i);
+            }
+            for (int i = 0; i < tau.size(); i++) {
+                file_data << ", " << tau(i);
+            }
+            file_data << std::endl;
+
+            // log the reference and feedforward torque data
+            file_commands << joint_ref(0);
+            for (int i = 1; i < joint_ref.size(); i++) {
+                file_commands << ", " << joint_ref(i);
+            }
+            for (int i = 0; i < tau_ff.size(); i++) {
+                file_commands << ", " << tau_ff(i);
+            }
+            file_commands << std::endl;
+
+            // log the diagnostics data
+            file_diagnostics << diagnostics(0);
+            for (int i = 1; i < diagnostics.size(); i++) {
+                file_diagnostics << ", " << diagnostics(i);
+            }
+            file_diagnostics << std::endl;
         }
-        for (int i = 0; i < tau.size(); i++) {
-            file_data << ", " << tau(i);
-        }
-        file_data << std::endl;
-
-        // log the reference and feedforward torque data
-        file_commands << joint_ref(0);
-        for (int i = 1; i < joint_ref.size(); i++) {
-            file_commands << ", " << joint_ref(i);
-        }
-        for (int i = 0; i < tau_ff.size(); i++) {
-            file_commands << ", " << tau_ff(i);
-        }
-        file_commands << std::endl;
-
-        // log the diagnostics data
-        file_diagnostics << diagnostics(0);
-        for (int i = 1; i < diagnostics.size(); i++) {
-            file_diagnostics << ", " << diagnostics(i);
-        }
-        file_diagnostics << std::endl;
-
-        std::this_thread::sleep_for(std::chrono::microseconds(250)); // Sleep for micro seconds
     }
 
     // shutdown the ELMOs gracefully
     elmo.shutdownELMO();
-
-    //***************************************************************
 
     return 0;
 }

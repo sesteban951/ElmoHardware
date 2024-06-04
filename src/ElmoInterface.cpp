@@ -10,13 +10,16 @@
 */ 
 
 // function to intialize the ELMO motor controllers
-void ELMOInterface::initELMO(uint8 opmode, char* port, pthread_t thread1, pthread_t thread2) {
+void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2) {
 
     // Initialize the ELMO data struct
     this->data = (struct ELMOData *)malloc(sizeof(struct ELMOData));
 
     // set the operation mode
     this->data->OpMode = opmode;
+
+    // set the frequency of the control loop
+    this->data->freq = freq;
 
     // flip the motor switch to be on
     this->data->motor_control_switch = true;
@@ -35,11 +38,30 @@ void ELMOInterface::initELMO(uint8 opmode, char* port, pthread_t thread1, pthrea
 
     printf("SOEM (Simple Open EtherCAT Master)\nSetting Up ELMO drivers...\n");
     
-    /* Thread to catch ELMO errors and act appropriately */
-    pthread_create( &thread1, NULL, &ecatcheck, (void (*)) &ctime);
+    // Threading stuff to set each thread to the highest priority
+    pthread_attr_t attr;
+    struct sched_param param;
     
-    /* Thread to communicate with ELMO. Send and receive data */
-    pthread_create( &thread2, NULL, &ELMOcommunication, (void (*)) &this->data);
+    // intialize the thread attribute
+    pthread_attr_init(&attr);
+    
+    // set the thread to be FIFO
+    pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+
+    // set the thread priority to the maximum
+    param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+    pthread_attr_setschedparam(&attr, &param);
+
+    // set the thread to be inheritable
+    pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+
+    /* Thread to catch ELMO errors and act appropriately */
+    pthread_create(&thread1, &attr, &ecatcheck, (void (*)) &ctime);
+    
+    // /* Thread to communicate with ELMO. Send and receive data */
+    pthread_create(&thread2, &attr, &ELMOcommunication, (void (*)) &this->data);
+
+    std::cout << "Created threads for ELMO communication and error checking." << std::endl;
 
     // Wait for communication to be set up
     while(this->data->commStatus != 1) {

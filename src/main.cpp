@@ -150,16 +150,17 @@ int main() {
     pthread_t thread1, thread2;
     elmo.initELMO(opmode, freq, port, thread1, thread2);
 
-    // initialize the intial time
-    auto start = std::chrono::high_resolution_clock::now();
-    auto t1 = start;
-    double dt = 0.0, time = 0.0;
-
     // for trajectory generation
     double sine_sig, sine_sig_dt, sin_tau;
     double A_ref, f_ref;
     A_ref = 0.2;
     f_ref = 0.25;
+
+    // initialize the intial time
+    bool first_time = true;
+    auto start = std::chrono::high_resolution_clock::now();
+    auto t1 = start;
+    double dt = 0.0, time = 0.0;
 
     // get encoder data
     while (time <= max_time) {
@@ -169,7 +170,10 @@ int main() {
         auto duration_dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
         dt = duration_dt.count() / 1'000'000.0; 
         
-        if (dt >= (1.0 / freq)) {
+        if (dt >= (1.0 / freq) || first_time == true) {
+
+            // update first time
+            first_time = false;
 
             // update time
             t1 = t2;

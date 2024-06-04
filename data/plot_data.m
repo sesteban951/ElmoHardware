@@ -110,11 +110,13 @@ end
 figure('Name','Data Rates');
 dt = time(2:end) - time(1:end-1);
 dt_ms = dt * 1000;
+
+subplot(2,1,1);
 plot(time(2:end), dt_ms);
 xlabel('Time [s]');
 ylabel('dt [ms]');
-
 mean = mean(dt_ms);
 std = std(dt_ms);
 mesg = sprintf('Data Rates \n Mean: %.3f ms, Std: %.3f ms', mean, std);
 title(mesg);
+

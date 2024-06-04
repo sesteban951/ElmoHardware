@@ -300,7 +300,7 @@ void *ELMOcommunication(void *data) {
                                 } 
                                 else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
                                     // SOD
-                                    std::cout << "Drive " << i+1 << " is in SOD." << std::endl;
+                                    // std::cout << "Drive " << i+1 << " is in SOD." << std::endl;
                                     ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
                                     target[i]->controlword = ctrlWord_tmp; 
@@ -309,7 +309,7 @@ void *ELMOcommunication(void *data) {
                                 }
                                 else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // RSO
-                                    std::cout << "Drive " << i+1 << " is in RSO." << std::endl;
+                                    // std::cout << "Drive " << i+1 << " is in RSO." << std::endl;
                                     ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
@@ -319,7 +319,7 @@ void *ELMOcommunication(void *data) {
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // SO
-                                    std::cout << "Drive " << i+1 << " in SO." << std::endl;
+                                    // std::cout << "Drive " << i+1 << " in SO." << std::endl;
                                     ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
@@ -330,13 +330,13 @@ void *ELMOcommunication(void *data) {
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // ARMED
-                                    std::cout << "Drive " << i+1 << " ARMED." << std::endl;
+                                    // std::cout << "Drive " << i+1 << " ARMED." << std::endl;
                                     ctrlWord_tmp = (1 << 0) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
                                     ctrlWord_tmp = (1 << 3) | ctrlWord_tmp;
                                     target[i]->controlword = ctrlWord_tmp;
-                                    std::cout << "Control word: " << target[i]->controlword << std::endl;
+                                    // std::cout << "Control word: " << target[i]->controlword << std::endl;
 
                                     // Apply the desired torque
                                     target[i]->torque = data_pointer->torque[i];

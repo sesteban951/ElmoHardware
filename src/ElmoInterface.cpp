@@ -57,8 +57,10 @@ void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t th
     /* Thread to catch ELMO errors and act appropriately */
     pthread_create(&thread1, &attr, &ecatcheck, (void (*)) &ctime);
     
-    /* Thread to communicate with ELMO. Send and receive data */
+    // /* Thread to communicate with ELMO. Send and receive data */
     pthread_create(&thread2, &attr, &ELMOcommunication, (void (*)) &this->data);
+
+    std::cout << "Created threads for ELMO communication and error checking." << std::endl;
 
     // Wait for communication to be set up
     while(this->data->commStatus != 1) {

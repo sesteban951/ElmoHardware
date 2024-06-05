@@ -8,13 +8,16 @@
 #include <Eigen/Dense>
 
 // converison factors for reading the encoder data
-#define CPR 8192.0    // counts per revolution of the encoder (RLS RMB20)
-#define HIP_GR 30.0   // gear ratio for the hip actuators
-#define KNEE_GR 50.0  // gear ratio for the knee actuators
+const double CPR = 8192.0;    // counts per revolution of the encoder (RLS RMB20)
+const double HIP_GR = 30.0;   // gear ratio for the hip actuators
+const double KNEE_GR = 50.0;  // gear ratio for the knee actuators
 
 // actuator conversion factors
-#define HIP_CONVERSION 2*M_PI/CPR/HIP_GR
-#define KNEE_CONVERSION 2*M_PI/CPR/KNEE_GR
+const double HIP_CONVERSION = 2*M_PI/CPR/HIP_GR;
+const double KNEE_CONVERSION = 2*M_PI/CPR/KNEE_GR;
+
+// current to torque factor (linear) [N-m/A]
+const double CURRENT_TO_TORQUE = 0.03125;
 
 // struct for joint gains
 struct JointGains {
@@ -86,7 +89,7 @@ struct JointLimits {
 
 // variable for joint data
 typedef Eigen::Matrix< double, 12, 1> JointVec;    // vector for joint state
-typedef Eigen::Matrix< double, 6, 1> JointTorque;  // vector for feedforward torque
+typedef Eigen::Matrix< double, 6, 1> JointCommand;  // vector for feedforward torque
 typedef Eigen::Matrix< double, 18, 1> ELMOStatus;   // status of each motor controller
 
 //  A class that enables communication between the computer and motor controllers
@@ -103,19 +106,17 @@ class ELMOInterface {
         void shutdownELMO();
 
         // function to set the low level gains and limits
-        void setGains(JointGains gains);
         void setLimits(JointLimits limits);
 
-        // function to get teh ELMO status
+        // function to get the ELMO status
         ELMOStatus getELMOStatus();
 
         // function to get encoder data
         JointVec getEncoderData();
 
-        // functions to compute and send target torque to the ELMO
-        JointTorque computeTorque(JointVec joint_ref, 
-                                  JointTorque tau_ff);
-        void sendTorque(JointTorque torque);
+        // functions to compute and send target pos to the ELMO
+        JointCommand checkPosition(JointCommand position_ref);
+        void sendPosition(JointCommand position);
 
     private:
 

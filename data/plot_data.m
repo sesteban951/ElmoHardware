@@ -12,10 +12,7 @@ status_data = importdata('diagnostics.csv');
 % extract the joint data
 joint_pos = joint_data(:,1:6);           % joint position read
 joint_vel = joint_data(:,7:12);          % joint velocity read
-joint_tau = joint_data(:,13:18);         % joint torque computed
 joint_pos_ref = joint_ref_data(:,1:6);   % joint position desired
-joint_vel_ref = joint_ref_data(:,7:12);  % joint velocity desired
-joint_tau_ref = joint_ref_data(:,13:18); % joint torque feedforward
 
 % extract the status data
 inputs = status_data(:,1:6);    % digital inputs
@@ -29,10 +26,7 @@ idx = time >= start_time & time <= end_time;
 time = time(idx);
 joint_pos = joint_pos(idx,:);
 joint_vel = joint_vel(idx,:);
-joint_tau = joint_tau(idx,:);
 joint_pos_ref = joint_pos_ref(idx,:);
-joint_vel_ref = joint_vel_ref(idx,:);
-joint_tau_ref = joint_tau_ref(idx,:);
 inputs = inputs(idx,:);
 controls = controls(idx,:);
 status = status(idx,:);
@@ -55,28 +49,26 @@ for i = 1:6
     plot(time, joint_pos_ref(:,i));          
     title('Position');
     xlabel('Time (s)');
-    legend(["Actual Pos (rad)", "Desired Pos (rad)"]);
+    ylabel('Position (rad)');
+    legend(["Actual Pos", "Desired Pos"]);
     grid on;
 
-    % joint velocities
+    % joint error
     subplot(3,1,2);
-    plot(time, joint_vel(:,i)); hold on; 
-    plot(time, joint_vel_ref(:,i));           
+    yline(0); hold on;
+    plot(time, joint_pos_ref(:,i) - joint_pos(:,i), 'm');
+    title('Position Tracking Error');
+    xlabel('Time (s)');
+    ylabel('Error (rad)');
+    grid on;
+
+    % joint velocity
+    subplot(3,1,3);
+    plot(time, joint_vel(:,i)); hold on;
     title('Velocity');
     xlabel('Time (s)');
-    legend(["Actual Vel (rad/s)", "Desired Vel (rad/s)"]);
+    ylabel('Velocity (rad/s)');
     grid on;
-
-    % joint torque
-    subplot(3,1,3);
-    plot(time, joint_tau(:,i)); hold on;  % plot the joint torque
-    plot(time, joint_tau_ref(:,i)); % plot the feedforward torque
-
-    title('Torque');
-    xlabel('Time (s)');
-    legend(["Computed Torque (Nm)", "Feedforward Torque (Nm)"]);
-    grid on;
-
 end
 
 % plot diagnostic data

@@ -28,26 +28,20 @@
 
 // struct for general ELMO data
 struct ELMOData{
-  uint8 OpMode;              // operation mode
-  char port[1028];           // ethernet port container
-  bool motor_control_switch; // desired motor state
-  int commStatus;            // communication status
-  double freq;               // frequency of control loop
-  int16 torque[6];           // desried torque commands from Laptop
-  int32 pos[6];              // encoder joint position from ELMO
-  int32 vel[6];              // encoder joint velocity from ELMO
-  uint32 inputs[6];          // inputs
-  uint16 controlword[6];     // control word of each motor
-  uint16 statusword[6];      // status word of each motor
+  uint8_t OpMode;              // operation mode
+  char port[1028];             // ethernet port container
+  bool motor_control_switch;   // desired motor state
+  int commStatus;              // communication status
+  double freq;                 // frequency of control loop
+  int32_t position[6];         // desried position commands from Laptop
+  int32_t pos[6];              // encoder joint position from ELMO
+  int32_t vel[6];              // encoder joint velocity from ELMO
+  uint32_t inputs[6];          // inputs
+  uint16_t controlword[6];     // control word of each motor
+  uint16_t statusword[6];      // status word of each motor
 };
 
 // struct to hold out-going data, Laptop --> ELMO
-// Torque Control (x1602)
-// struct ELMOOut {
-//    int16_t torque;       // "Torque Command"
-//    uint16_t controlword; // "Control Word", converted to binary and use DS402 SM, 6040
-// };
-
 // Position Control (x1600)
 struct ELMOOut {
    int32_t position;     // "Target Position"

@@ -68,33 +68,21 @@ int main() {
     JointLimits limits;
     limits.q_min_HFL = config["limits"]["HFL"]["q_min"].as<double>(); // Hip Frontal Left (HFL)
     limits.q_max_HFL = config["limits"]["HFL"]["q_max"].as<double>(); 
-    limits.qd_min_HFL = config["limits"]["HFL"]["qd_min"].as<double>();
-    limits.qd_max_HFL = config["limits"]["HFL"]["qd_max"].as<double>();
 
     limits.q_min_HSL = config["limits"]["HSL"]["q_min"].as<double>(); // Hip Sagittal Left (HSL)
     limits.q_max_HSL = config["limits"]["HSL"]["q_max"].as<double>();
-    limits.qd_min_HSL = config["limits"]["HSL"]["qd_min"].as<double>();
-    limits.qd_max_HSL = config["limits"]["HSL"]["qd_max"].as<double>();
 
     limits.q_min_KL = config["limits"]["KL"]["q_min"].as<double>();   // Knee Left (KL)
     limits.q_max_KL = config["limits"]["KL"]["q_max"].as<double>();
-    limits.qd_min_KL = config["limits"]["KL"]["qd_min"].as<double>();
-    limits.qd_max_KL = config["limits"]["KL"]["qd_max"].as<double>();
 
     limits.q_min_HFR = config["limits"]["HFR"]["q_min"].as<double>();  // Hip Frontal Right (HFR)
     limits.q_max_HFR = config["limits"]["HFR"]["q_max"].as<double>();
-    limits.qd_min_HFR = config["limits"]["HFR"]["qd_min"].as<double>();
-    limits.qd_max_HFR = config["limits"]["HFR"]["qd_max"].as<double>();
 
     limits.q_min_HSR = config["limits"]["HSR"]["q_min"].as<double>();  // Hip Sagittal Right (HSR)
     limits.q_max_HSR = config["limits"]["HSR"]["q_max"].as<double>();
-    limits.qd_min_HSR = config["limits"]["HSR"]["qd_min"].as<double>();
-    limits.qd_max_HSR = config["limits"]["HSR"]["qd_max"].as<double>();
 
     limits.q_min_KR = config["limits"]["KR"]["q_min"].as<double>();    // Knee Right (KR)
     limits.q_max_KR = config["limits"]["KR"]["q_max"].as<double>();
-    limits.qd_min_KR = config["limits"]["KR"]["qd_min"].as<double>();
-    limits.qd_max_KR = config["limits"]["KR"]["qd_max"].as<double>();
 
     // for logging purposes
     std::string log_file_time = "../data/time.csv";
@@ -126,7 +114,7 @@ int main() {
     // for trajectory generation
     double sine_sig, sine_sig_dt;
     double A_ref, f_ref;
-    A_ref = 0.1;
+    A_ref = 0.03;
     f_ref = 1.0;
 
     // initialize the intial time
@@ -163,6 +151,7 @@ int main() {
 
             // specify some feedforward torque
             JointCommand pos_ref;
+            JointCommand pos_ref_checked;
 
             // DEBUG
             sine_sig = sin_wave(time, A_ref, f_ref);
@@ -182,11 +171,12 @@ int main() {
             pos_ref(4) = 0.0;  // Hip Sagittal Right (HSR)
             // pos_ref(4) = sine_sig;  // Hip Sagittal Right (HSR)
 
-            // pos_ref(5) = 0.1;  // Knee Right (KR)
-            pos_ref(5) = sine_sig;  // Knee Right (KR)
+            pos_ref(5) = 0.0;  // Knee Right (KR)
+            // pos_ref(5) = sine_sig;  // Knee Right (KR)
 
             // send the torque command to the ELMO
-            elmo.sendPosition(pos_ref);
+            pos_ref_checked = elmo.checkPosition(pos_ref);
+            elmo.sendPosition(pos_ref_checked);
 
             // log the time data
             file_time << time << std::endl;
@@ -199,9 +189,9 @@ int main() {
             file_data << std::endl;
 
             // log the reference and feedforward torque data
-            file_commands << pos_ref(0);
+            file_commands << pos_ref_checked(0);
             for (int i = 1; i < pos_ref.size(); i++) {
-                file_commands << ", " << pos_ref(i);
+                file_commands << ", " << pos_ref_checked(i);
             }
             file_commands << std::endl;
 

@@ -257,7 +257,7 @@ void *ELMOcommunication(void *data) {
                     dt = duration.count() / 1'000'000.0; // convert to seconds
                     
                     // execute this block of code every 1/freq seconds
-                    if (dt >= (1.0 / data_pointer->freq)) {
+                    if ((dt >= 1.0 / data_pointer->freq)) {
 
                         // update the time
                         t1 = t2;
@@ -287,13 +287,15 @@ void *ELMOcommunication(void *data) {
 
                                 // Do it for the first elmo slave
                                 uint16_t ctrlWord_tmp = 0;
+                                // uint16_t ctrlWord_tmp = target[i]->controlword;
                                 uint16_t statusWord = val[i]->status;
                                 std::cout << "\nStatus "<< i+1 <<": " << statusWord << std::endl;
+
+                                target[i]->position = (int32_t) 0;
 
                                 if(!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){    
                                     // NOT READY
                                     std::cout << "Drive " << i+1 <<" NOT ready." << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 } 
                                 else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 6) & 1)){
                                     // SOD
@@ -302,7 +304,6 @@ void *ELMOcommunication(void *data) {
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
                                     target[i]->controlword = ctrlWord_tmp; 
                                     std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
                                 else if (((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // RSO
@@ -312,7 +313,6 @@ void *ELMOcommunication(void *data) {
                                     ctrlWord_tmp = (1 << 2) | ctrlWord_tmp; 
                                     target[i]->controlword = ctrlWord_tmp; 
                                     std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // SO
@@ -323,7 +323,6 @@ void *ELMOcommunication(void *data) {
                                     ctrlWord_tmp = (1 << 3) | ctrlWord_tmp; 
                                     target[i]->controlword = ctrlWord_tmp;
                                     std::cout << "Control word: " << target[i]->controlword << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && ((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)) {
                                     // ARMED
@@ -335,30 +334,30 @@ void *ELMOcommunication(void *data) {
                                     target[i]->controlword = ctrlWord_tmp;
                                     std::cout << "Control word: " << target[i]->controlword << std::endl;
 
-                                    // Apply the desired torque
-                                    target[i]->position = data_pointer->position[i];
-                                    std::cout << "Desired pointer: " << data_pointer->position[i] << std::endl;
-                                    std::cout << "Desired target: " << target[i]->position << std::endl; 
+                                    // Position Control
+                                    if (opmode == 8) {
+                                        target[i]->position = data_pointer->position[i];
+                                    }
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && !((statusWord >> 3) & 1) && !((statusWord >> 5) & 1) && !((statusWord >> 6) & 1)){
                                     // FAILED
                                     std::cout << "Drive " << i+1 << " QUICK STOPPED." << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
                                 else if (((statusWord >> 0) & 1) && ((statusWord >> 1) & 1) && ((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
                                     // FAILED
                                     std::cout << "Drive " << i+1 << " FAILED: fault reaction active." << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
                                 else if (!((statusWord >> 0) & 1) && !((statusWord >> 1) & 1) && !((statusWord >> 2) & 1) && ((statusWord >> 3) & 1) && !((statusWord >> 6) & 1)){
                                     // FAILED
                                     std::cout << "Drive " << i+1 << " FAILED: fault." << std::endl;
-                                    target[i]->position = (int32_t) 0;
+                                    ctrlWord_tmp = (1 << 1) | ctrlWord_tmp; 
+                                    ctrlWord_tmp = (1 << 2) | ctrlWord_tmp;    
+                                    target[i]->controlword = ctrlWord_tmp; 
+                                    std::cout << "Control word: " << target[i]->controlword << std::endl;
                                 }
                                 else{
                                     // unknown state
                                     std::cout << "Drive " << i+1 << " FAILED: unknown state." << std::endl;
-                                    target[i]->position = (int32_t) 0;
                                 }
 
                                 // send the control word to the ELMO based on what status word was read

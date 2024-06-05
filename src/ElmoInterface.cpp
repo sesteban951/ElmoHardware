@@ -1,6 +1,4 @@
 #include "../inc/ElmoInterface.hpp"
-#include <iomanip>
-
 
 /* ELMO order of joints (physical daisy chain order)
   1. HFL  (Hip Frontal Left)
@@ -204,9 +202,6 @@ JointCommand ELMOInterface::checkPosition(JointCommand position_ref) {
 // function to send target torque to the ELMO
 void ELMOInterface::sendPosition(JointCommand position_ref) {
 
-    // check for joint limit violations
-    position_ref = checkPosition(position_ref);
-
     // unpack the torque vector
     double p_HFL, p_HSL, p_KL, p_HFR, p_HSR, p_KR;
     p_HFL = position_ref(0) / HIP_CONVERSION;
@@ -223,9 +218,5 @@ void ELMOInterface::sendPosition(JointCommand position_ref) {
     // populate the data pointer with the torque values
     for (int i = 0; i < 6; i++) {
         this->data->position[i] = (int32_t) position_applied(i);
-        if (i == 5) {
-            std::cout << "Knee Right (KR) position applied: " << position_applied(i) << std::endl;
-            std::cout << "Knee Right (KR) data_position: " << position_applied(i) << std::endl;
-        }
     }
 }

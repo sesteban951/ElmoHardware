@@ -63,40 +63,43 @@ for i = 1:6
     grid on;
 
     % joint velocity
+    vel_expected = diff(joint_pos_ref(:,i)) ./ diff(time);
     subplot(3,1,3);
     plot(time, joint_vel(:,i)); hold on;
+    plot(time(1:end-1), vel_expected);
     title('Velocity');
     xlabel('Time (s)');
     ylabel('Velocity (rad/s)');
+    legend(["Actual Vel (rad/s)", "Desired Vel (rad/s)"]);
     grid on;
 end
 
 % plot diagnostic data
-figure('Name','Diagnostic Data');
-tabgp = uitabgroup;
-for i = 1:6
+% figure('Name','Diagnostic Data');
+% tabgp = uitabgroup;
+% for i = 1:6
     
-    tab = uitab(tabgp, 'Title', labels(i));
-    axes('Parent', tab);
+%     tab = uitab(tabgp, 'Title', labels(i));
+%     axes('Parent', tab);
 
-    subplot(3,1,1);
-    plot(time, inputs(:,i)); hold on;   % plot the digital inputs
-    title('Inputs');
-    xlabel('Time (s)');
-    grid on;
+%     subplot(3,1,1);
+%     plot(time, inputs(:,i)); hold on;   % plot the digital inputs
+%     title('Inputs');
+%     xlabel('Time (s)');
+%     grid on;
 
-    subplot(3,1,2);
-    plot(time, controls(:,i)); hold on; % plot the control word
-    title('Control Word');
-    xlabel('Time (s)');
-    grid on;
+%     subplot(3,1,2);
+%     plot(time, controls(:,i)); hold on; % plot the control word
+%     title('Control Word');
+%     xlabel('Time (s)');
+%     grid on;
 
-    subplot(3,1,3);
-    plot(time, status(:,i)); hold on;   % plot the status word
-    title('Status Word');
-    xlabel('Time (s)');
-    grid on;
-end
+%     subplot(3,1,3);
+%     plot(time, status(:,i)); hold on;   % plot the status word
+%     title('Status Word');
+%     xlabel('Time (s)');
+%     grid on;
+% end
 
 % plot data rates
 figure('Name','Data Rates');

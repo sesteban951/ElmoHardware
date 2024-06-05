@@ -53,38 +53,26 @@ struct JointLimits {
     // Hip Frontal Left (HFL)
     double q_max_HFL; 
     double q_min_HFL;
-    double qd_max_HFL; 
-    double qd_min_HFL;
 
     // Hip Sagittal Left (HSL)
     double q_max_HSL; 
     double q_min_HSL;
-    double qd_max_HSL;
-    double qd_min_HSL;
 
     // Knee Left (KL)
     double q_max_KL;  
     double q_min_KL;
-    double qd_max_KL;
-    double qd_min_KL;
 
     // Hip Frontal Right (HFR)
     double q_max_HFR; 
     double q_min_HFR;
-    double qd_max_HFR;
-    double qd_min_HFR;
 
     // Hip Sagittal Right (HSR)
     double q_max_HSR; 
     double q_min_HSR;
-    double qd_max_HSR;
-    double qd_min_HSR;
 
     // Knee Right (KR)
     double q_max_KR;  
     double q_min_KR;
-    double qd_max_KR;
-    double qd_min_KR;
 };
 
 // variable for joint data

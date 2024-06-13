@@ -9,6 +9,66 @@
   6. KR   (Knee Right)
 */ 
 
+// function to wait for all ELMOs to be ARMED
+int ELMOInterface::waitForELMOarmed() {
+
+    // idicator, 1 = success, 0 = failure
+    int success;
+
+    // container for the ELMO status
+    ELMOStatus diagnostics;
+    double elmo_status[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+    // for excedding the maximum wait time
+    auto t1 = std::chrono::high_resolution_clock::now();
+    double wait_time = 0;
+
+    // wait unitl the ELMOs are ready
+    std::cout << "Waiting for ELMOs to be ready..." << std::endl;
+    bool elmo1, elmo2, elmo3, elmo4, elmo5, elmo6;
+    while(true) {
+
+        // break if all ELMOs are ready
+        if (elmo1 && elmo2 && elmo3 && elmo4 && elmo5 && elmo6) {
+            success = 1;
+            break;
+        }
+
+        // check how long we've been waiting
+        auto t2 = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1);
+        wait_time = duration.count() / 1'000'000.0;
+
+        // if we've been waiting for too long, exit, something is wrong
+        if (wait_time >= MAX_MOTOR_INIT_WAIT_TIME) {
+            success = 0;
+            break;
+        }
+
+        // get the newest diagnostic data and wait until all ELMOs ready
+        diagnostics = getELMOStatus();
+        for (int i = 0; i < 6; ++i) {
+            elmo_status[i] = diagnostics(i + 12);
+        }
+
+        // check the statusof each ELMO
+        elmo1 = (elmo_status[0] == 4663.0);
+        elmo2 = (elmo_status[1] == 4663.0);
+        elmo3 = (elmo_status[2] == 4663.0);
+        elmo4 = (elmo_status[3] == 4663.0);
+        elmo5 = (elmo_status[4] == 4663.0);
+        elmo6 = (elmo_status[5] == 4663.0);
+
+        // print hte current ELMO Status
+        std::cout << "-----------------------------" << std::endl;
+        std::cout << "ELMO Status: " << elmo1 << ", " << elmo2 << ", " << elmo3 << ", " << elmo4 << ", " << elmo5 << ", " << elmo6 << std::endl;
+
+        usleep(500'000);
+    }
+
+    return success;
+}
+
 // function to intialize the ELMO motor controllers
 void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2) {
 
@@ -28,6 +88,9 @@ void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t th
     int32_t pos0[6] = {0,0,0,0,0,0};
     int32_t vel0[6] = {0,0,0,0,0,0};
     int32_t position0[6] = {0,0,0,0,0,0};
+
+    // intialize the previous joint position for rate limiting
+    this->prev_pos_app.setZero();
 
     // Populate the ELMO data struct with the intial values
     memcpy(this->data->pos, pos0, sizeof(pos0));                // set the position to zero
@@ -70,8 +133,20 @@ void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t th
             exit(2);
         }
     };
+    
+    usleep(3000);
 
-    printf("Ready.\n");
+    // Wait for all ELMOs to be ARMED
+    int success = waitForELMOarmed();
+
+    if (success == 1) {
+        std::cout << "All ELMOs are ready!" << std::endl;
+    } else {
+        std::cout << "ELMOs are not ready after " << MAX_MOTOR_INIT_WAIT_TIME << " seconds." << std::endl; 
+        std::cout << "Check ELMOs. Exiting ELMO Interface." << std::endl;
+        exit(1);
+    }
+
     usleep(3000);
 }
 
@@ -80,13 +155,23 @@ void ELMOInterface::shutdownELMO() {
 
     // turn the desired motor switch to be off
     this->data->motor_control_switch = false;
+    
+    usleep(5000);
 }
 
 // function to set the joint limits
-void ELMOInterface::setLimits(JointLimits limits) {
+void ELMOInterface::setLimits(JointLimits limits, double freq) {
 
     // set the limits
     this->limits = limits;
+
+    // set the maximum allowable change in position
+    this->max_delta_pos_HFL = limits.qd_limit_HFL / freq;
+    this->max_delta_pos_HSL = limits.qd_limit_HSL / freq;
+    this->max_delta_pos_KL  = limits.qd_limit_KL / freq;
+    this->max_delta_pos_HFR = limits.qd_limit_HFR / freq;
+    this->max_delta_pos_HSR = limits.qd_limit_HSR / freq;
+    this->max_delta_pos_KR  = limits.qd_limit_KR / freq;
 }
 
 // function to get the ELMO status (reordered)
@@ -127,30 +212,30 @@ ELMOStatus ELMOInterface::getELMOStatus() {
 }
 
 // function to get the raw encoder data from ELMO
-JointVec ELMOInterface::getEncoderData() {
+JointEncoderVec ELMOInterface::getEncoderData() {
 
     // declare variables for the incoming data
-    int32 pos[6];
-    int32 vel[6];
-    JointVec tmp(12);
+    int32 current_pos[6];
+    int32 current_vel[6];
+    JointEncoderVec tmp(12);
 
     // copy the incoming data to the declared variables
-    memcpy(pos, this->data->pos, sizeof(pos));
-    memcpy(vel, this->data->vel, sizeof(vel));
+    memcpy(current_pos, this->data->pos, sizeof(current_pos));
+    memcpy(current_vel, this->data->vel, sizeof(current_vel));
 
     // populate the Eigen vector with reordered data
-    tmp <<  pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
-            pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
-            pos[3] * KNEE_CONVERSION, // (KL) Knee Left
-            pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
-            pos[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
-            pos[5] * KNEE_CONVERSION, // (KR) Knee Right
-            vel[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
-            vel[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
-            vel[3] * KNEE_CONVERSION, // (KL) Knee Left
-            vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
-            vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
-            vel[5] * KNEE_CONVERSION; // (KR) Knee Right
+    tmp <<  current_pos[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+            current_pos[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+            current_pos[3] * KNEE_CONVERSION, // (KL) Knee Left
+            current_pos[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+            current_pos[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+            current_pos[5] * KNEE_CONVERSION, // (KR) Knee Right
+            current_vel[0] * HIP_CONVERSION,  // (HFL) Hip Frontal Left
+            current_vel[1] * HIP_CONVERSION,  // (HSL) Hip Sagittal Left
+            current_vel[3] * KNEE_CONVERSION, // (KL) Knee Left
+            current_vel[4] * HIP_CONVERSION,  // (HFR) Hip Frontal Right
+            current_vel[2] * HIP_CONVERSION,  // (HSR) Hip Sagittal Right
+            current_vel[5] * KNEE_CONVERSION; // (KR) Knee Right
 
     return tmp;
 }
@@ -166,6 +251,41 @@ JointCommand ELMOInterface::checkPosition(JointCommand position_ref) {
     p_HFR = position_ref(3);
     p_HSR = position_ref(4);
     p_KR  = position_ref(5);
+
+    // compute the signed position increment from last applied position to new reference position
+    double delta_p_HFL, delta_p_HSL, delta_p_KL, delta_p_HFR, delta_p_HSR, delta_p_KR;
+    delta_p_HFL = p_HFL - this->prev_pos_app(0);
+    delta_p_HSL = p_HSL - this->prev_pos_app(1);
+    delta_p_KL  = p_KL  - this->prev_pos_app(2);
+    delta_p_HFR = p_HFR - this->prev_pos_app(3);
+    delta_p_HSR = p_HSR - this->prev_pos_app(4);
+    delta_p_KR  = p_KR  - this->prev_pos_app(5);
+
+    // saturate the posiiton values based on the rate limits
+    if (abs(delta_p_HFL) > this->max_delta_pos_HFL) {
+        std::cout << "Rate limit violation: Hip Frontal Left (HFL). Saturating.\n" << std::endl;
+        (delta_p_HFL >= 0) ? (p_HFL = this->prev_pos_app(0) + this->max_delta_pos_HFL) : (p_HFL = this->prev_pos_app(0) - this->max_delta_pos_HFL);
+    }
+    if (abs(delta_p_HSL) > this->max_delta_pos_HSL) {
+        std::cout << "Rate limit violation: Hip Sagittal Left (HSL). Saturating.\n" << std::endl;
+        (delta_p_HSL >= 0) ? (p_HSL = this->prev_pos_app(1) + this->max_delta_pos_HSL) : (p_HSL = this->prev_pos_app(1) - this->max_delta_pos_HSL);
+    }
+    if (abs(delta_p_KL) > this->max_delta_pos_KL) {
+        std::cout << "Rate limit violation: Knee Left (KL). Saturating.\n" << std::endl;
+        (delta_p_KL >= 0) ? (p_KL = this->prev_pos_app(2) + this->max_delta_pos_KL) : (p_KL = this->prev_pos_app(2) - this->max_delta_pos_KL);
+    }
+    if (abs(delta_p_HFR) > this->max_delta_pos_HFR) {
+        std::cout << "Rate limit violation: Hip Frontal Right (HFR). Saturating.\n" << std::endl;
+        (delta_p_HFR >= 0) ? (p_HFR = this->prev_pos_app(3) + this->max_delta_pos_HFR) : (p_HFR = this->prev_pos_app(3) - this->max_delta_pos_HFR);
+    }
+    if (abs(delta_p_HSR) > this->max_delta_pos_HSR) {
+        std::cout << "Rate limit violation: Hip Sagittal Right (HSR). Saturating.\n" << std::endl;
+        (delta_p_HSR >= 0) ? (p_HSR = this->prev_pos_app(4) + this->max_delta_pos_HSR) : (p_HSR = this->prev_pos_app(4) - this->max_delta_pos_HSR);
+    }
+    if (abs(delta_p_KR) > this->max_delta_pos_KR) {
+        std::cout << "Rate limit violation: Knee Right (KR). Saturating.\n" << std::endl;
+        (delta_p_KR >= 0) ? (p_KR = this->prev_pos_app(5) + this->max_delta_pos_KR) : (p_KR = this->prev_pos_app(5) - this->max_delta_pos_KR);
+    }
 
     // saturate the position values if the values are exceeded
     if (p_HFL < this->limits.q_min_HFL || p_HFL > this->limits.q_max_HFL) {
@@ -201,6 +321,14 @@ JointCommand ELMOInterface::checkPosition(JointCommand position_ref) {
 
 // function to send target torque to the ELMO
 void ELMOInterface::sendPosition(JointCommand position_ref) {
+
+    // for computing rate limited positions
+    this->prev_pos_app(0) = position_ref(0);
+    this->prev_pos_app(1) = position_ref(1);
+    this->prev_pos_app(2) = position_ref(2);
+    this->prev_pos_app(3) = position_ref(3);
+    this->prev_pos_app(4) = position_ref(4);
+    this->prev_pos_app(5) = position_ref(5);
 
     // unpack the torque vector
     double p_HFL, p_HSL, p_KL, p_HFR, p_HSR, p_KR;

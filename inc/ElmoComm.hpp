@@ -13,6 +13,7 @@
 #include <bitset>
 #include <chrono>
 #include <algorithm>
+#include <cmath>
 
 // Ethercat headers
 #include <ethercat.h>

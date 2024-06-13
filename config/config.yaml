@@ -13,7 +13,7 @@ ethernet: "enx00e04c68005e"    # desktop dock
 
 # operation mode of the motor controllers (TODO: right now 8->10)
 OpMode: 8       # 8: Position Mode, 10: Torque Mode
-frequency: 1000  # [Hz]
+frequency: 1500  # [Hz]
 
 ############################################################################
 # PROGRAM TIME
@@ -26,36 +26,41 @@ max_prog_time: 15.0
 # JOINT LIMITS
 ############################################################################
 
-# configuration limits [rad], velocity limits [rad/s]
+# configuration limits [rad], velocity limits [rad/s] (vel_lim >= 0)
 limits:
 
   # Hip Frontal Left (HFL)
   HFL:
-    q_min: -0.15
-    q_max: 0.15
+    q_min: -0.2
+    q_max: 0.2
+    qd_limit: 0.4
 
   # Hip Sagittal Left (HSL)
   HSL:
     q_min: -0.5
     q_max: 0.35
+    qd_limit: 2.0
 
   # Knee Left (KL)
   KL:
     q_min: -0.35
     q_max: 0.35
+    qd_limit: 3.0
 
   # Hip Frontal Right (HFR)
   HFR:
-    q_min: -0.15
-    q_max: 0.15
+    q_min: -0.2
+    q_max: 0.2
+    qd_limit: 0.4
 
   # Hip Sagittal Right (HSR)
   HSR:
     q_min: -0.5
     q_max: 0.35
+    qd_limit: 2.0
 
   # Knee Right (KR)
   KR:
     q_min: -0.35
     q_max: 0.35
-
+    qd_limit: 3.0

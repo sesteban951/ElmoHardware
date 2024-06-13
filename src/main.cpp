@@ -68,21 +68,27 @@ int main() {
     JointLimits limits;
     limits.q_min_HFL = config["limits"]["HFL"]["q_min"].as<double>(); // Hip Frontal Left (HFL)
     limits.q_max_HFL = config["limits"]["HFL"]["q_max"].as<double>(); 
+    limits.qd_limit_HFL = config["limits"]["HFL"]["qd_limit"].as<double>();
 
     limits.q_min_HSL = config["limits"]["HSL"]["q_min"].as<double>(); // Hip Sagittal Left (HSL)
     limits.q_max_HSL = config["limits"]["HSL"]["q_max"].as<double>();
+    limits.qd_limit_HSL = config["limits"]["HSL"]["qd_limit"].as<double>();
 
     limits.q_min_KL = config["limits"]["KL"]["q_min"].as<double>();   // Knee Left (KL)
     limits.q_max_KL = config["limits"]["KL"]["q_max"].as<double>();
+    limits.qd_limit_KL = config["limits"]["KL"]["qd_limit"].as<double>();
 
     limits.q_min_HFR = config["limits"]["HFR"]["q_min"].as<double>();  // Hip Frontal Right (HFR)
     limits.q_max_HFR = config["limits"]["HFR"]["q_max"].as<double>();
+    limits.qd_limit_HFR = config["limits"]["HFR"]["qd_limit"].as<double>();
 
     limits.q_min_HSR = config["limits"]["HSR"]["q_min"].as<double>();  // Hip Sagittal Right (HSR)
     limits.q_max_HSR = config["limits"]["HSR"]["q_max"].as<double>();
+    limits.qd_limit_HSR = config["limits"]["HSR"]["qd_limit"].as<double>();
 
     limits.q_min_KR = config["limits"]["KR"]["q_min"].as<double>();    // Knee Right (KR)
     limits.q_max_KR = config["limits"]["KR"]["q_max"].as<double>();
+    limits.qd_limit_KR = config["limits"]["KR"]["qd_limit"].as<double>();
 
     // for logging purposes
     std::string log_file_time = "../data/time.csv";
@@ -105,7 +111,7 @@ int main() {
     ELMOInterface elmo;
 
     // set the joint limits
-    elmo.setLimits(limits);
+    elmo.setLimits(limits, freq);
 
     // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
@@ -114,8 +120,8 @@ int main() {
     // for trajectory generation
     double sine_sig, sine_sig_dt;
     double A_ref, f_ref;
-    A_ref = 0.03;
-    f_ref = 1.0;
+    A_ref = 0.2;
+    f_ref = 0.5;
 
     // initialize the intial time
     bool first_time = true;
@@ -147,7 +153,7 @@ int main() {
             ELMOStatus diagnostics = elmo.getELMOStatus();
 
             // get the current encoder data
-            JointVec data = elmo.getEncoderData();
+            JointEncoderVec data = elmo.getEncoderData();
 
             // specify some feedforward torque
             JointCommand pos_ref;
@@ -163,7 +169,7 @@ int main() {
             // pos_ref(1) = sine_sig;  // Hip Sagittal Left (HSL)
 
             pos_ref(2) = 0.0;  // Knee Left (KL)
-            // pos_ref(2) = sine_sig;  // Knee Left (KL)
+            // pos_ref(2) = -sine_sig;  // Knee Left (KL)
 
             pos_ref(3) = 0.0;  // Hip Frontal Right (HFR)
             // pos_ref(3) = sine_sig;  // Hip Frontal Right (HFR)

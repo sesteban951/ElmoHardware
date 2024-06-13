@@ -114,4 +114,3 @@ mean = mean(dt_ms);
 std = std(dt_ms);
 mesg = sprintf('Data Rates \n Mean: %.3f ms, Std: %.3f ms', mean, std);
 title(mesg);
-

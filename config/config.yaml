@@ -3,9 +3,7 @@
 ############################################################################
 
 # my computer ethernet port (check this via 'ifconfig')
-ethernet: "enx00e04c68005e"    # desktop dock
-# ethernet: "enx207bd29d4768"  # ugreen ethernet adapter
-# ethernet: "enx9cebe83faea0" # amber ethernet adapter
+ethernet: "ens3"    # desktop dock
 
 ############################################################################
 # OPERATION MODE
@@ -20,7 +18,7 @@ frequency: 1500  # [Hz]
 ############################################################################
 
 # max testing time [sec]
-max_prog_time: 15.0
+max_prog_time: 60.0
 
 ############################################################################
 # JOINT LIMITS
@@ -37,8 +35,8 @@ limits:
 
   # Hip Sagittal Left (HSL)
   HSL:
-    q_min: -0.5
-    q_max: 0.35
+    q_min: -0.6
+    q_max: 0.0
     qd_limit: 2.0
 
   # Knee Left (KL)
@@ -55,12 +53,12 @@ limits:
 
   # Hip Sagittal Right (HSR)
   HSR:
-    q_min: -0.5
-    q_max: 0.35
+    q_min: -0.6
+    q_max: 0.0
     qd_limit: 2.0
 
   # Knee Right (KR)
   KR:
-    q_min: -0.35
-    q_max: 0.35
+    q_min: -0.5
+    q_max: 0.5
     qd_limit: 3.0

@@ -19,25 +19,14 @@
 char port[1028];
 
 // sine wave signal
-double sin_wave(double t, double A, double f) {
+double sine_wave(double t, double A, double f, double phi) {
 
     double w, x;
     w = 2 * M_PI * f;
 
-    x = A * sin(w * t);
+    x = A * sin(w * t + phi);
 
     return x;
-}
-
-// derivative of sine wave 
-double sin_wave_dt(double t, double A, double f) {
-
-    double w, dx;
-    w = 2 * M_PI * f;
-
-    dx = A * w * cos(w * t);
-
-    return dx;
 }
 
 // main ELMO control loop
@@ -120,7 +109,7 @@ int main() {
     // for trajectory generation
     double sine_sig, sine_sig_dt;
     double A_ref, f_ref;
-    A_ref = 0.2;
+    A_ref = 0.1;
     f_ref = 0.5;
 
     // initialize the intial time
@@ -160,25 +149,23 @@ int main() {
             JointCommand pos_ref_checked;
 
             // DEBUG
-            sine_sig = sin_wave(time, A_ref, f_ref);
-            
             pos_ref(0) = 0.0;  // Hip Frontal Left (HFL)
             // pos_ref(0) = sine_sig;  // Hip Frontal Left (HFL)   
 
-            pos_ref(1) = 0.0;  // Hip Sagittal Left (HSL)
+            pos_ref(1) = -0.0;  // Hip Sagittal Left (HSL)
             // pos_ref(1) = sine_sig;  // Hip Sagittal Left (HSL)
 
-            pos_ref(2) = 0.0;  // Knee Left (KL)
-            // pos_ref(2) = -sine_sig;  // Knee Left (KL)
+            // pos_ref(2) = 0.0; // Knee Left (KL)
+            pos_ref(2) = sine_wave(time, 0.2, 1.0, 0);  // Knee Left (KL)
 
             pos_ref(3) = 0.0;  // Hip Frontal Right (HFR)
             // pos_ref(3) = sine_sig;  // Hip Frontal Right (HFR)
             
-            pos_ref(4) = 0.0;  // Hip Sagittal Right (HSR)
-            // pos_ref(4) = sine_sig;  // Hip Sagittal Right (HSR)
+            pos_ref(4) = -0.0;  // Hip Sagittal Right (HSR)
+            // pos_ref(4) = sin_wave(time, 0.2, 0.5, 3.1415);  // Knee Left (KL)
 
-            pos_ref(5) = 0.0;  // Knee Right (KR)
-            // pos_ref(5) = sine_sig;  // Knee Right (KR)
+            // pos_ref(5) = 0.0;
+            pos_ref(5) = sine_wave(time, 0.2, 1.0, 3.1415);  // Knee Right (KR)
 
             // send the torque command to the ELMO
             pos_ref_checked = elmo.checkPosition(pos_ref);

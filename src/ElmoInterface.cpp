@@ -69,8 +69,56 @@ int ELMOInterface::waitForELMOarmed() {
     return success;
 }
 
+// test that the ELMOs are armed by moving them 
+void ELMOInterface::testELMOarmed() {
+
+    // for the sine wave
+    double x, A, T, f, w;
+    A = 0.05; 
+    T = 1.5;
+    f = 1/T;
+    w = 2 * M_PI * f;
+
+    // test the ELMOs by moving them
+    JointCommand pos_ref;
+    pos_ref.setZero();
+    for (int i = 0; i < 6; i++) {
+
+        std::cout << "Testing ELMO " << i << "..." << std::endl;
+
+        // reset timing
+        auto t0 = std::chrono::high_resolution_clock::now();
+        double t = 0;
+        
+        // give sine wave reference to a joint
+        while (t <= T) {
+
+            // get the current time
+            auto now = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(now - t0);
+            t = duration.count() / 1'000'000.0;
+
+            // set the sine wave for the joint
+            x = A * sin(w * t);
+
+            // set the joint position
+            pos_ref(i) = x;
+            pos_ref = checkPosition(pos_ref);
+            sendPosition(pos_ref);
+
+            usleep(800);
+        }
+
+        // pause before going to next joint
+        pos_ref.setZero();
+        usleep(500'000);
+    }
+
+    std::cout << "Finished testing the ELMOs." << std::endl;
+}
+
 // function to intialize the ELMO motor controllers
-void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2) {
+int ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2) {
 
     // Initialize the ELMO data struct
     this->data = (struct ELMOData *)malloc(sizeof(struct ELMOData));
@@ -148,6 +196,8 @@ void ELMOInterface::initELMO(uint8 opmode, double freq, char* port, pthread_t th
     }
 
     usleep(3000);
+
+    return success;
 }
 
 // function to that flips the motor control switch to off

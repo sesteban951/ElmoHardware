@@ -69,7 +69,7 @@ class ELMOInterface {
         ~ELMOInterface() {};
 
         // function to initialize/shutdown ELMO
-        void initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2);
+        int initELMO(uint8 opmode, double freq, char* port, pthread_t thread1, pthread_t thread2);
         void shutdownELMO();
 
         // function to set the low level limits
@@ -84,6 +84,9 @@ class ELMOInterface {
         // functions to compute and send target pos to the ELMO
         JointCommand checkPosition(JointCommand position_ref);
         void sendPosition(JointCommand position);
+
+        // test the motors are armed
+        void testELMOarmed();
 
     private:
 

@@ -30,13 +30,13 @@ limits:
   # Hip Frontal Left (HFL)
   HFL:
     q_min: -0.2
-    q_max: 0.2
-    qd_limit: 0.4
+    q_max: 0.15
+    qd_limit: 1.0
 
   # Hip Sagittal Left (HSL)
   HSL:
     q_min: -0.6
-    q_max: 0.0
+    q_max: 0.15
     qd_limit: 2.0
 
   # Knee Left (KL)
@@ -47,18 +47,18 @@ limits:
 
   # Hip Frontal Right (HFR)
   HFR:
-    q_min: -0.2
+    q_min: -0.15
     q_max: 0.2
-    qd_limit: 0.4
+    qd_limit: 1.0
 
   # Hip Sagittal Right (HSR)
   HSR:
     q_min: -0.6
-    q_max: 0.0
+    q_max: 0.15
     qd_limit: 2.0
 
   # Knee Right (KR)
   KR:
-    q_min: -0.5
-    q_max: 0.5
+    q_min: -0.35
+    q_max: 0.35
     qd_limit: 3.0

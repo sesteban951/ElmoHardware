@@ -104,7 +104,10 @@ int main() {
 
     // create two threads, one for ELMO communication and the other for ecat checking
     pthread_t thread1, thread2;
-    elmo.initELMO(opmode, freq, port, thread1, thread2);
+    int success = elmo.initELMO(opmode, freq, port, thread1, thread2);
+    if (success) {
+        elmo.testELMOarmed();
+    }
 
     // for trajectory generation
     double sine_sig, sine_sig_dt;
@@ -155,8 +158,8 @@ int main() {
             pos_ref(1) = -0.0;  // Hip Sagittal Left (HSL)
             // pos_ref(1) = sine_sig;  // Hip Sagittal Left (HSL)
 
-            // pos_ref(2) = 0.0; // Knee Left (KL)
-            pos_ref(2) = sine_wave(time, 0.2, 1.0, 0);  // Knee Left (KL)
+            pos_ref(2) = 0.0; // Knee Left (KL)
+            // pos_ref(2) = sine_wave(time, 0.2, 0.5, 0);  // Knee Left (KL)
 
             pos_ref(3) = 0.0;  // Hip Frontal Right (HFR)
             // pos_ref(3) = sine_sig;  // Hip Frontal Right (HFR)
@@ -164,8 +167,8 @@ int main() {
             pos_ref(4) = -0.0;  // Hip Sagittal Right (HSR)
             // pos_ref(4) = sin_wave(time, 0.2, 0.5, 3.1415);  // Knee Left (KL)
 
-            // pos_ref(5) = 0.0;
-            pos_ref(5) = sine_wave(time, 0.2, 1.0, 3.1415);  // Knee Right (KR)
+            pos_ref(5) = 0.0;
+            //pos_ref(5) = sine_wave(time, 0.2, 1.0, 3.1415);  // Knee Right (KR)
 
             // send the torque command to the ELMO
             pos_ref_checked = elmo.checkPosition(pos_ref);
